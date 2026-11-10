@@ -1,0 +1,30 @@
+/* Responsive — Mobile First */
+@media (max-width:1024px){
+  .grid-3,.gallery,.news-grid{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .why-grid,.exp-row,.contact-grid{grid-template-columns:1fr}
+  .exp-row.reverse .exp-media{order:0}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .cta{grid-template-columns:1fr;padding:36px 28px}
+  .stats{grid-template-columns:repeat(2,1fr);margin-top:-36px}
+  .team-grid{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  .nav,.header-cta .btn{display:none}
+  .burger{display:flex}
+  .topbar .container{justify-content:center;text-align:center}
+  .section{padding:64px 0}
+  .hero-content{padding:80px 0 70px}
+  .why-visual img{height:360px}
+  .member{flex-direction:column}
+}
+@media (max-width:560px){
+  .grid-3,.gallery,.news-grid,.steps,.form-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr;gap:12px}
+  .stat strong{font-size:30px}
+  .footer-grid{grid-template-columns:1fr}
+  .quick-actions{grid-template-columns:1fr}
+  .hero-actions .btn{width:100%}
+  .exp-media img{height:260px}
+  .form-card{padding:22px}
+}

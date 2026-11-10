@@ -1,0 +1,4 @@
+-- GLOBAL SOLUTIONS — Schéma Supabase (projet jaxnlwtqpyjykjrnuxis)
+-- Tables : contact_messages, realisations, actualites, site_settings
+-- RLS activé avec politiques publiques (insert contact, select publie)
+-- Voir README.md pour les instructions d'administration.
