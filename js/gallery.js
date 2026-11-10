@@ -26,7 +26,7 @@ function renderGallery(items, filter) {
       <div class="g-body">
         <h3>${p.titre}</h3>
         <p style="color:var(--grey-mid);font-size:14px;margin-top:6px">${p.description}</p>
-        <div class="g-meta"><span>${CATEGORY_LABELS[p.categorie] || p.categorie}</span><span>${p.localisation}</span><span>${p.annee}</span>${p.placeholder ? '<span style="background:#FFF7ED;color:#92400E">À compléter</span>' : ''}</div>
+        <div class="g-meta"><span>${CATEGORY_LABELS[p.categorie] || p.categorie}</span><span>${p.localisation}</span><span>${p.annee}</span>${p.placeholder ? '<span class="tag-todo">À compléter</span>' : ''}</div>
       </div>
     </article>`).join('');
   // Ré-attacher lightbox

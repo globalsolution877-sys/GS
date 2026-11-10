@@ -82,11 +82,28 @@ Table `actualites` : `titre`, `extrait`, `contenu`, `image_url`, `date_publicati
 
 Table `contact_messages` (Supabase Dashboard). Pensez à activer les notifications e-mail / Edge Function pour l'envoi automatique vers `info@globalsolutions.one`.
 
+## Charte graphique (couleurs exactes du logo)
+
+Les couleurs sont prélevées directement sur `assets/logos/logo.jpg` :
+
+| Rôle | Couleur | Origine |
+|---|---|---|
+| Bleu ciel — accent, boutons, icônes | `#52C6F9` (`--sky`) | Lettres **G** et **S** + points du globe |
+| Gris — texte secondaire, filets, anneau décoratif | `#7E7E7E` (`--grey-logo`) / `#D7D7D7` (`--line`) | Anneau, satellite et « Global Solutions » |
+| Blanc | `#FFFFFF` | Fond du logo |
+| Bleu nuit — titres, fonds sombres | `#04293B` (`--navy`) | Déclinaison sombre du bleu ciel (même teinte, H 198°) |
+| Bleu profond — liens/eyebrows lisibles sur blanc (AA) | `#0A75A6` (`--sky-dark`) | Déclinaison du bleu ciel |
+| Fonds très clairs | `#F3FBFF` (`--sky-mist`) / `#DCF4FE` (`--sky-soft`) | Déclinaisons du bleu ciel |
+| Texte principal | `#1B1B1B` | Neutre |
+| WhatsApp (officiel) | `#25D366` | Couleur de la plateforme |
+
+Le bleu ciel du logo n'est jamais utilisé pour du texte fin sur blanc (contraste insuffisant) : il sert d'aplat, de bouton et d'accent, tandis que `#0A75A6` assure la lisibilité des liens.
+
 ## Personnalisation
 
 - **Textes / photos / actualités** : via Supabase (voir ci-dessus) — aucun code à modifier.
 - **Logo** : remplacer `assets/logos/logo.jpg`.
-- **Couleurs / typographies** : variables CSS en tête de `css/style.css` (`--navy`, `--blue`, `--orange`…).
+- **Couleurs / typographies** : variables CSS en tête de `css/style.css` (voir la charte ci-dessous).
 - **SEO** : titres, meta descriptions, Open Graph et Schema.org dans chaque `<head>` ; `sitemap.xml` + `robots.txt` à la racine.
 
 ## Contenus à compléter (volontairement non inventés)
