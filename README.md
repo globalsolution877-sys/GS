@@ -139,6 +139,51 @@ Via `/admin.html` → Réalisations, ou dans Supabase → Table Editor → `real
 
 Via `/admin.html` → Actualités : `titre`, `extrait`, `contenu` (paragraphes séparés par une ligne vide), `image_url`, `date_publication`, `statut='publie'`.
 
+---
+
+## 📧 Notifications e-mail des demandes de contact
+
+La chaîne est **complète et testée** : formulaire → `contact_messages` → trigger `on_contact_message_created` → Edge Function `notify-contact` → journal `notifications`.
+
+Il ne reste qu'à brancher un fournisseur d'envoi (gratuit) :
+
+### 1. Créer une clé chez Resend (recommandé, 3 000 e-mails/mois gratuits)
+
+1. Créez un compte sur [resend.com](https://resend.com).
+2. **API Keys** → *Create API Key* → copiez la clé (`re_…`).
+3. **Domains** → ajoutez `globalsolutions.one` et suivez les 3 enregistrements DNS (SPF, DKIM, DMARC) chez votre hébergeur de domaine.
+
+### 2. Ajouter la clé dans Supabase
+
+Dashboard Supabase → **Edge Functions** → **Secrets** → *Add new secret* :
+
+| Nom | Valeur |
+|---|---|
+| `RESEND_API_KEY` | `re_votre_cle…` |
+| `MAIL_TO` | adresse de réception (déjà réglée sur `info@globalsolutions.one`) |
+| `MAIL_FROM` | `GLOBAL SOLUTIONS <notifications@globalsolutions.one>` |
+
+> Sans domaine vérifié, Resend n'autorise l'envoi que vers l'adresse du compte et depuis `onboarding@resend.dev`. Vérifiez le domaine avant la mise en production.
+
+### 3. Alternative : Brevo
+
+Créez une clé sur [brevo.com](https://www.brevo.com) (300 e-mails/jour gratuits) et enregistrez-la sous le nom `BREVO_API_KEY`. La fonction détecte automatiquement le fournisseur disponible (Resend prioritaire).
+
+### Suivi et dépannage
+
+L'onglet **Notifications** de l'administration affiche le journal des 50 derniers envois avec l'état :
+
+| État | Signification |
+|---|---|
+| `Envoyé` | L'e-mail est parti chez le fournisseur |
+| `Non configuré` | Chaîne OK, clé API absente |
+| `Échec` | Clé refusée, domaine non vérifié ou quota atteint (détail enregistré) |
+| `Erreur trigger` | Problème technique côté base |
+
+L'adresse de réception se change directement dans cet onglet (réglage `notify_email`).
+
+> **Garantie :** un incident d'e-mail ne bloque jamais l'enregistrement d'une demande. Le trigger attrape l'erreur, la journalise, et le message reste consultable dans l'onglet Demandes.
+
 ### Photos des réalisations et portraits
 
 Le plus simple : héberger les images sur un service gratuit (Cloudinary, Imgur, Supabase Storage public) et coller l'URL dans le champ prévu. Aucune modification de code nécessaire.

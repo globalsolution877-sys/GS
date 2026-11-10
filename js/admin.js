@@ -123,13 +123,16 @@
 
     // ---------------------------------------------------------- Dashboard
     dashboard: async () => {
-      const [msgs, real, news, exp, team] = await Promise.all([
+      const [msgs, real, news, exp, team, notif] = await Promise.all([
         api('contact_messages?select=id,statut,created_at&order=created_at.desc').catch(() => []),
         api('realisations?select=id,statut').catch(() => []),
         api('actualites?select=id,statut').catch(() => []),
         api('expertises?select=id,actif').catch(() => []),
-        api('equipe?select=id,actif').catch(() => [])
+        api('equipe?select=id,actif').catch(() => []),
+        api('notifications?select=*&order=created_at.desc&limit=5').catch(() => [])
       ]);
+      const sent = notif.filter((n) => n.statut === 'envoye').length;
+      const noProvider = notif.some((n) => n.statut === 'non_configure');
       const newMsgs = msgs.filter((m) => (m.statut || 'nouveau') === 'nouveau').length;
       return `
         <div class="kpis">
@@ -139,6 +142,13 @@
           <div class="kpi"><strong>${exp.filter((e) => e.actif).length}</strong><span>Expertises actives</span></div>
           <div class="kpi"><strong>${team.length}</strong><span>Membres de l'équipe</span></div>
         </div>
+        ${noProvider ? `<div class="a-card" style="border-left:4px solid #E0A800">
+          <h2>Notifications e-mail non configurées</h2>
+          <p class="a-sub">La chaîne d'alerte fonctionne, mais aucune clé d'API d'envoi n'est encore renseignée. Ajoutez <code>RESEND_API_KEY</code> (ou <code>BREVO_API_KEY</code>) dans les secrets Supabase pour recevoir les demandes par e-mail. En attendant, elles sont toutes visibles dans l'onglet Demandes.</p>
+        </div>` : (sent ? `<div class="a-card" style="border-left:4px solid var(--sky)">
+          <h2>Notifications e-mail actives</h2>
+          <p class="a-sub">Dernier envoi réussi. ${sent} notification(s) transmise(s) récemment.</p>
+        </div>` : '')}
         <div class="a-card">
           <h2>Bienvenue dans votre espace</h2>
           <p class="a-sub">Tout ce que vous modifiez ici est immédiatement visible sur le site public (après actualisation de la page).</p>
@@ -352,6 +362,39 @@
       </div>`;
     },
 
+    // ------------------------------------------------------ Notifications
+    notifications: async () => {
+      const rows = await api('notifications?select=*&order=created_at.desc&limit=50').catch(() => []);
+      const state = (s) => ({ envoye: 'pub', non_configure: 'new', echec: 'new', erreur_trigger: 'new' }[s] || '');
+      const label = {
+        envoye: 'Envoyé', non_configure: 'Non configuré', echec: 'Échec', erreur_trigger: 'Erreur trigger'
+      };
+      return `<div class="a-card">
+        <h2>Notifications e-mail</h2>
+        <p class="a-sub">Chaque demande de contact déclenche une alerte vers l'adresse de réception. Voici le journal des 50 derniers envois.</p>
+        <div class="a-form" style="margin-bottom:18px">
+          <label class="full">Adresse de réception des alertes
+            <input id="notifyEmail" value="${esc((rows[0] && rows[0].destinataire) || '')}" placeholder="info@globalsolutions.one">
+            <small>Modifiable ici, enregistrée dans les réglages du site.</small>
+          </label>
+        </div>
+        <div class="a-form-foot" style="justify-content:flex-start"><button class="a-btn primary" id="saveNotifyEmail">Enregistrer l'adresse</button></div>
+      </div>
+      <div class="a-card">
+        <h2>Journal (${rows.length})</h2>
+        ${rows.length ? `<table class="a-table"><thead><tr><th>Date</th><th>Destinataire</th><th>Sujet</th><th>Fournisseur</th><th>État</th></tr></thead><tbody>
+          ${rows.map((n) => `<tr>
+            <td>${n.created_at ? new Date(n.created_at).toLocaleString('fr-FR') : ''}</td>
+            <td>${esc(n.destinataire || '—')}</td>
+            <td style="max-width:320px">${esc(n.sujet || '—')}</td>
+            <td>${esc(n.provider || '—')}</td>
+            <td><span class="a-badge ${state(n.statut)}">${esc(label[n.statut] || n.statut || '')}</span></td>
+          </tr>`).join('')}
+        </tbody></table>` : `<div class="a-empty"><strong>Aucune notification pour l'instant</strong>
+          Le journal se remplit à chaque nouvelle demande de contact.</div>`}
+      </div>`;
+    },
+
     // ---------------------------------------------------------- Réglages
     reglages: async () => {
       const [settings, admins] = await Promise.all([
@@ -388,7 +431,7 @@
   const TITLES = {
     dashboard: 'Tableau de bord', messages: 'Demandes de contact', realisations: 'Réalisations',
     actualites: 'Actualités', expertises: 'Expertises', equipe: 'Équipe',
-    contenus: 'Textes du site', stats: 'Indicateurs', reglages: 'Réglages'
+    contenus: 'Textes du site', stats: 'Indicateurs', notifications: 'Notifications e-mail', reglages: 'Réglages'
   };
 
   async function show(view) {
@@ -493,6 +536,23 @@
         toast('Réglages enregistrés');
       } catch (e) { toast(e.message, true); }
       finally { saveSettings.disabled = false; }
+    });
+
+    // ---------- Adresse de réception des notifications
+    const saveNotify = $('#saveNotifyEmail');
+    if (saveNotify) saveNotify.addEventListener('click', async () => {
+      const val = $('#notifyEmail').value.trim();
+      if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { toast('Adresse e-mail invalide', true); return; }
+      saveNotify.disabled = true;
+      try {
+        await fetch(API + 'site_settings?on_conflict=cle', {
+          method: 'POST',
+          headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + admin.access_token, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify({ cle: 'notify_email', valeur: val })
+        });
+        toast('Adresse de réception enregistrée');
+      } catch (e) { toast(e.message, true); }
+      finally { saveNotify.disabled = false; }
     });
 
     // ---------- Formulaires de création

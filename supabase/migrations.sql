@@ -200,3 +200,59 @@ create index if not exists idx_stats_ordre       on public.stats(ordre);
 create index if not exists idx_realisations_statut on public.realisations(statut);
 create index if not exists idx_actualites_statut on public.actualites(statut);
 create index if not exists idx_contact_statut    on public.contact_messages(statut);
+
+
+-- ============================================================================
+-- NOTIFICATIONS E-MAIL DES DEMANDES DE CONTACT
+-- ============================================================================
+
+create extension if not exists pg_net with schema extensions;
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid references public.contact_messages(id) on delete set null,
+  destinataire text,
+  sujet text,
+  provider text,
+  statut text default 'en_attente',
+  detail text,
+  created_at timestamptz default now()
+);
+alter table public.notifications enable row level security;
+
+drop policy if exists admin_all_notifications on public.notifications;
+create policy admin_all_notifications on public.notifications
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+create index if not exists idx_notifications_created on public.notifications(created_at desc);
+
+insert into public.site_settings (cle, valeur) values ('notify_email','info@globalsolutions.one')
+on conflict (cle) do nothing;
+
+insert into public.app_config (cle, valeur) values ('project_url','https://jaxnlwtqpyjykjrnuxis.supabase.co')
+on conflict (cle) do nothing;
+
+-- Trigger : appelle l'Edge Function notify-contact après chaque demande
+create or replace function public.notify_new_contact() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare pf text;
+begin
+  select valeur into pf from public.app_config where cle = 'project_url';
+  if pf is null then pf := 'https://jaxnlwtqpyjykjrnuxis.supabase.co'; end if;
+
+  perform net.http_post(
+    url := pf || '/functions/v1/notify-contact',
+    body := jsonb_build_object('type','INSERT','table','contact_messages','record', to_jsonb(new)),
+    headers := jsonb_build_object('Content-Type','application/json'),
+    timeout_milliseconds := 5000
+  );
+  return new;
+exception when others then
+  insert into public.notifications (message_id, statut, detail) values (new.id, 'erreur_trigger', sqlerrm);
+  return new;
+end; $$;
+
+drop trigger if exists on_contact_message_created on public.contact_messages;
+create trigger on_contact_message_created
+  after insert on public.contact_messages
+  for each row execute function public.notify_new_contact();
