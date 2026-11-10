@@ -369,9 +369,27 @@
       const label = {
         envoye: 'Envoyé', non_configure: 'Non configuré', echec: 'Échec', erreur_trigger: 'Erreur trigger'
       };
+      const PROJECT_REF = (cfg.url || '').replace('https://', '').split('.')[0];
+      const secretsUrl = 'https://supabase.com/dashboard/project/' + PROJECT_REF + '/functions/secrets';
+      const noKey = rows.some((n) => n.statut === 'non_configure');
+
       return `<div class="a-card">
-        <h2>Notifications e-mail</h2>
-        <p class="a-sub">Chaque demande de contact déclenche une alerte vers l'adresse de réception. Voici le journal des 50 derniers envois.</p>
+        <h2>Activer l'envoi des e-mails</h2>
+        <p class="a-sub">La chaîne technique est prête. Il manque uniquement la clé d'un fournisseur d'e-mail (Resend ou Brevo, gratuits).</p>
+        <ol style="margin:0 0 18px 18px;color:var(--grey-mid);font-size:14px;line-height:1.9">
+          <li>Créez un compte sur <a href="https://resend.com" target="_blank" rel="noopener" style="color:var(--sky-dark);font-weight:700">resend.com</a> puis une <strong>API Key</strong>.</li>
+          <li>Copiez la clé (elle commence par <code>re_</code>).</li>
+          <li>Ouvrez les secrets Supabase (ci-dessous) et créez <code>RESEND_API_KEY</code>.</li>
+        </ol>
+        <div class="a-actions">
+          <a class="a-btn primary" href="${secretsUrl}" target="_blank" rel="noopener">Ouvrir les secrets Supabase ↗</a>
+          <a class="a-btn" href="https://resend.com/api-keys" target="_blank" rel="noopener">Créer une clé Resend ↗</a>
+        </div>
+        ${noKey ? '<p style="margin-top:14px;font-size:13px;color:#8C1D18;background:#FDF3F2;border:1px solid #F3C9C5;border-radius:10px;padding:12px 14px"><strong>État : clé absente.</strong> Les demandes sont enregistrées et visibles dans l\'onglet Demandes, mais aucun e-mail n\'est envoyé.</p>' : ''}
+      </div>
+      <div class="a-card">
+        <h2>Journal des envois</h2>
+        <p class="a-sub">Chaque demande de contact déclenche une alerte vers l'adresse de réception. Voici les 50 derniers envois.</p>
         <div class="a-form" style="margin-bottom:18px">
           <label class="full">Adresse de réception des alertes
             <input id="notifyEmail" value="${esc((rows[0] && rows[0].destinataire) || '')}" placeholder="info@globalsolutions.one">
