@@ -82,6 +82,17 @@ Configuration front : `js/supabase-config.js` contient l'URL publique et la clé
 
 Le site est **entièrement piloté par la base de données** : tout ce qui est modifié dans l'administration apparaît immédiatement sur le site public.
 
+### Accès discret depuis le site
+
+| Geste | Effet |
+|---|---|
+| **Double-clic sur le logo** (en haut de page) | Ouvre `admin.html` |
+| **Ctrl + clic** (ou Cmd + clic) sur le logo | Ouvre `admin.html` |
+| **Appui long** (700 ms) sur le logo, sur mobile | Ouvre `admin.html` |
+| Simple clic sur le logo | Ramène à l'accueil (comportement normal) |
+
+Un liseré « Double-clic : administration » apparaît au survol du logo pour vous le rappeler. Aucun lien d'administration n'apparaît dans le menu public.
+
 ### Première connexion
 
 | Champ | Valeur |
