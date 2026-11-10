@@ -418,6 +418,14 @@
         </div>
         <div class="a-form-foot"><button class="a-btn primary" id="saveSettings">Enregistrer</button></div>
       </div>
+      <div class="a-card"><h2>Sécurité — changer mon mot de passe</h2>
+        <p class="a-sub">Connecté en tant que <strong>${esc(admin.email || '')}</strong>. Utilisez au moins 10 caractères.</p>
+        <div class="a-form">
+          <label>Nouveau mot de passe<input type="password" id="newPassword" autocomplete="new-password" minlength="8" placeholder="••••••••"></label>
+          <label>Confirmer<input type="password" id="newPassword2" autocomplete="new-password" minlength="8" placeholder="••••••••"></label>
+        </div>
+        <div class="a-form-foot" style="justify-content:flex-start"><button class="a-btn primary" id="changePassword">Mettre à jour le mot de passe</button></div>
+      </div>
       <div class="a-card"><h2>Comptes administrateurs</h2>
         <p class="a-sub">Seules les personnes inscrites avec le code d'invitation figurent ici.</p>
         <table class="a-table"><tbody>
@@ -536,6 +544,26 @@
         toast('Réglages enregistrés');
       } catch (e) { toast(e.message, true); }
       finally { saveSettings.disabled = false; }
+    });
+
+    // ---------- Changement de mot de passe
+    const changePwd = $('#changePassword');
+    if (changePwd) changePwd.addEventListener('click', async () => {
+      const a = $('#newPassword').value, b = $('#newPassword2').value;
+      if (a.length < 8) { toast('8 caractères minimum', true); return; }
+      if (a !== b) { toast('Les deux mots de passe diffèrent', true); return; }
+      changePwd.disabled = true;
+      try {
+        const res = await fetch(cfg.url + '/auth/v1/user', {
+          method: 'PUT',
+          headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + admin.access_token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: a })
+        });
+        if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.msg || j.message || 'Modification refusée'); }
+        toast('Mot de passe mis à jour');
+        $('#newPassword').value = ''; $('#newPassword2').value = '';
+      } catch (e) { toast(e.message, true); }
+      finally { changePwd.disabled = false; }
     });
 
     // ---------- Adresse de réception des notifications
