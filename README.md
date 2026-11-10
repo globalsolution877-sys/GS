@@ -22,8 +22,12 @@ Site multipage statique (HTML5 / CSS3 / JavaScript ES6+) pour **GLOBAL SOLUTIONS
 │   ├── style.css         Design system (bleu nuit #10243A, orange #E99A35…)
 │   ├── responsive.css    Mobile First (smartphone → grand écran)
 │   └── animations.css    Animations discrètes, respect prefers-reduced-motion
+├── admin.html            ESPACE D'ADMINISTRATION (connexion + gestion des contenus)
 ├── js/
 │   ├── supabase-config.js  URL + clé anon (publique) — jamais la clé service_role
+│   ├── gs-data.js          Couche de données : Supabase REST + cache + fallbacks
+│   ├── gs-components.js    Rendu dynamique : expertises, équipe, stats, actus, réalisations
+│   ├── admin.js            Authentification et CRUD de l'administration
 │   ├── main.js             Reveal, parallaxe, lightbox, back-to-top
 │   ├── navigation.js       Menu mobile + lien actif
 │   ├── gallery.js          Filtres réalisations + chargement Supabase
@@ -62,25 +66,82 @@ Tables créées (RLS activé) :
 | `contact_messages` | Réception des demandes de devis (insert public) |
 | `realisations` | Projets publiés (select `statut='publie'`) |
 | `actualites` | Articles publiés (select `statut='publie'`) |
-| `site_settings` | Paramètres (e-mail, téléphones) |
+| `site_settings` | Paramètres (e-mail, téléphones, WhatsApp, réseaux) |
+| `expertises` | Les 9 domaines (éditables, ordre, activation) |
+| `equipe` | Les dirigeants (nom, fonction, bio, photo) |
+| `stats` | Les 4 indicateurs de l'accueil |
+| `pages_contenu` | Tous les textes du site (clé/valeur, par page) |
+| `admins` | Comptes autorisés (créés avec le code d'invitation) |
+| `app_config` | Réglages sensibles (code d'invitation) |
 
-Configuration front : `js/supabase-config.js` contient l'URL publique et la clé **anon** (sécurisée pour le navigateur). La clé `service_role` n'est **jamais** exposée côté client.
+Configuration front : `js/supabase-config.js` contient l'URL publique et la clé **anon** (sécurisée pour le navigateur). La clé `service_role` n'est **jamais** exposée côté client. L'écriture est contrôlée **côté base** par les policies RLS et la fonction `public.is_admin()`.
 
-### Ajouter une réalisation (sans toucher au code)
+---
 
-Dans Supabase → Table Editor → `realisations` → Insert :
+## 🔐 Espace d'administration (`/admin.html`)
 
-- `titre`, `description`, `localisation`, `categorie` (`batiments`, `hydraulique`, `forages`, `aeps`, `amenagements`, `solaire`, `genie-civil`, `metal`), `annee`, `image_url` (URL hébergée ou bucket Storage), `statut='publie'`.
+Le site est **entièrement piloté par la base de données** : tout ce qui est modifié dans l'administration apparaît immédiatement sur le site public.
 
-La galerie se met à jour automatiquement (fallback local si aucune ligne publiée).
+### Première connexion
+
+| Champ | Valeur |
+|---|---|
+| URL | `https://votre-domaine/admin.html` |
+| E-mail | `direction@globalsolutions.one` |
+| Mot de passe | `GS-Niger-2026!` |
+
+> ⚠️ **Changez ce mot de passe après la première connexion** (Dashboard Supabase → Authentication → Users → *Reset password*), puis retirez le lien « Administration » du pied de page si vous le souhaitez.
+
+### Créer d'autres accès
+
+Onglet « Première inscription » de la page admin. Le **code d'invitation** est obligatoire :
+
+```
+GS-ADMIN-9K4T-2026
+```
+
+Il se change dans la table `app_config` (clé `invite_code`). Sans ce code, aucune inscription n'est possible : le trigger `handle_new_user` rejette la création.
+
+### Ce que l'administration permet de gérer
+
+| Section | Actions |
+|---|---|
+| **Tableau de bord** | Nombre de demandes neuves, contenus publiés, accès rapides |
+| **Demandes** | Lire les messages du formulaire, marquer traité, répondre par e-mail, supprimer |
+| **Réalisations** | Créer / publier / dépublier / supprimer (photo + fiche) |
+| **Actualités** | Rédiger, publier, dépublier, supprimer (lecture en modale sur le site) |
+| **Expertises** | Ajouter, modifier, réordonner, masquer |
+| **Équipe** | Ajouter, modifier, masquer, ajouter une photo officielle |
+| **Textes du site** | Modifier tous les titres/paragraphes éditoriaux (héro, sections, CTA…) |
+| **Indicateurs** | Modifier les 4 chiffres de l'accueil |
+| **Réglages** | E-mail, téléphones, WhatsApp, adresse, réseaux sociaux |
+
+### Sécurité
+
+- Le JWT est stocké en `sessionStorage` (effacé à la fermeture de l'onglet).
+- Même si la clé anon est publique, **les policies RLS refusent toute écriture** à un visiteur non administrateur (vérifié : un `anon` qui tente un `UPDATE` modifie 0 ligne).
+- Le trigger d'inscription bloque toute création de compte sans code d'invitation.
+- `robots.txt` exclut `admin.html` et `noindex` est présent sur la page.
+
+### Fonctionnement du dynamique
+
+1. `js/gs-data.js` interroge l'API REST Supabase avec un cache de 5 minutes (`sessionStorage`).
+2. `js/gs-components.js` remplace les sections dès que les données arrivent.
+3. **Si la base est vide ou injoignable, le HTML statique reste affiché** : aucune page blanche, aucun contenu inventé.
+4. Les textes utilisent l'attribut `data-content="page.cle"` ; les images `data-content-src="page.cle"`.
+
+### Ajouter une réalisation
+
+Via `/admin.html` → Réalisations, ou dans Supabase → Table Editor → `realisations` :
+`titre`, `description`, `localisation`, `categorie` (`batiments`, `hydraulique`, `forages`, `aeps`, `amenagements`, `solaire`, `genie-civil`, `metal`), `annee`, `image_url`, `statut='publie'`.
 
 ### Ajouter une actualité
 
-Table `actualites` : `titre`, `extrait`, `contenu`, `image_url`, `date_publication`, `statut='publie'`.
+Via `/admin.html` → Actualités : `titre`, `extrait`, `contenu` (paragraphes séparés par une ligne vide), `image_url`, `date_publication`, `statut='publie'`.
 
-### Consulter les demandes de contact
+### Photos des réalisations et portraits
 
-Table `contact_messages` (Supabase Dashboard). Pensez à activer les notifications e-mail / Edge Function pour l'envoi automatique vers `info@globalsolutions.one`.
+Le plus simple : héberger les images sur un service gratuit (Cloudinary, Imgur, Supabase Storage public) et coller l'URL dans le champ prévu. Aucune modification de code nécessaire.
 
 ## Charte graphique (couleurs exactes du logo)
 

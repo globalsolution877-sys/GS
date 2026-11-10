@@ -243,3 +243,23 @@ h1,h2,h3,h4{font-family:var(--font-title);color:var(--navy);line-height:1.15;let
 /* Selection & focus — couleur du logo */
 ::selection{background:var(--sky);color:var(--navy)}
 :focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+
+/* Bandeau d'annonce piloté par l'administration */
+.announce-bar{background:var(--sky);color:var(--navy);font-family:var(--font-title);font-weight:700;font-size:13.5px}
+.announce-bar .container{display:flex;align-items:center;justify-content:center;gap:14px;padding:9px 0;position:relative}
+.announce-bar button{position:absolute;right:0;background:transparent;border:none;font-size:20px;line-height:1;cursor:pointer;color:var(--navy)}
+/* Avatar photo (équipe) */
+.avatar-img{width:96px;height:96px;flex:0 0 96px;border-radius:50%;object-fit:cover;border:4px solid var(--sky-soft)}
+/* Modale article (actualités) */
+.article-modal{position:fixed;inset:0;background:rgba(4,41,59,.75);backdrop-filter:blur(4px);z-index:250;display:none;align-items:center;justify-content:center;padding:22px}
+.article-modal.open{display:flex}
+.article-modal__panel{background:#fff;border-radius:20px;width:min(760px,100%);max-height:88vh;overflow:auto;position:relative;box-shadow:0 30px 80px rgba(4,41,59,.35)}
+.article-modal__body{padding:0 0 30px}
+.article-modal__body>img{width:100%;height:280px;object-fit:cover;border-radius:20px 20px 0 0}
+.article-modal__body>*:not(img){margin:0 30px}
+.article-modal__body .news-date{margin-top:22px}
+.article-modal__body h2{margin-top:8px;font-size:28px}
+.article-modal__body p{margin-top:14px;color:var(--grey-mid)}
+.article-modal__body .article-lead{font-size:16.5px;color:var(--grey-dark);font-weight:600}
+.article-modal__close{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(4,41,59,.75);color:#fff;font-size:22px;cursor:pointer;z-index:2}
+.article-modal__close:hover{background:var(--sky);color:var(--navy)}
