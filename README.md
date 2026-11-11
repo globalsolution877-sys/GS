@@ -239,6 +239,19 @@ L'adresse de réception se change directement dans cet onglet (réglage `notify_
 
 Le plus simple : héberger les images sur un service gratuit (Cloudinary, Imgur, Supabase Storage public) et coller l'URL dans le champ prévu. Aucune modification de code nécessaire.
 
+## 📄 Documentation technique du site
+
+Deux versions du même document, tenues à jour ensemble :
+
+| Fichier | Usage |
+|---|---|
+| `docs/fiche-technique.md` | Version Markdown, lisible et modifiable dans le dépôt |
+| `fiche-technique.html` | Version imprimable : ouvrir la page puis `Ctrl + P` → *Enregistrer au format PDF* |
+
+Elle couvre : identification, périmètre livré, architecture, technologies, base de données, stockage, sécurité, notifications, accessibilité, SEO, dépendances, hébergement, sauvegarde, coûts et limites.
+
+> Le document décrit **ce qui existe et comment cela fonctionne**, avec les chiffres relevés sur le système réel (tables, règles RLS, buckets, versions). Il ne relate pas l'historique de construction du site.
+
 ## Charte graphique (couleurs exactes du logo)
 
 Les couleurs sont prélevées directement sur `assets/logos/logo.jpg` :

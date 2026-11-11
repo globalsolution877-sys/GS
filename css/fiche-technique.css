@@ -1,0 +1,163 @@
+/* ============================================================================
+   GLOBAL SOLUTIONS — Fiche technique, mise en page documentaire
+   Objectif : lecture à l'écran ET impression propre en PDF (Ctrl + P).
+   ========================================================================== */
+
+:root{
+  --navy:#04293B;
+  --sky:#52C6F9;
+  --sky-dark:#0A75A6;
+  --grey:#5C5C5C;
+  --line:#D7D7D7;
+  --mist:#F3FBFF;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#EEF4F8;
+  color:#1B1B1B;
+  font-family:"Inter",Arial,Helvetica,sans-serif;
+  font-size:14.5px;
+  line-height:1.65;
+}
+
+/* ---------- Feuille ---------- */
+.doc{
+  width:min(860px,100%);
+  margin:28px auto;
+  background:#fff;
+  padding:52px 58px 64px;
+  border-radius:8px;
+  box-shadow:0 10px 40px rgba(4,41,59,.12);
+}
+
+/* ---------- Barre d'outils (masquée à l'impression) ---------- */
+.doc-tools{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;justify-content:flex-end;align-items:center;
+  background:rgba(4,41,59,.96);
+  padding:10px 16px;
+  font-family:"Manrope",Arial,sans-serif;
+  font-size:13px;color:#D7D7D7;
+}
+.doc-tools a,.doc-tools button{
+  border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;
+  border-radius:999px;padding:6px 14px;font:inherit;font-weight:700;
+  cursor:pointer;text-decoration:none;transition:.2s;
+}
+.doc-tools a:hover,.doc-tools button:hover{background:var(--sky);color:var(--navy);border-color:var(--sky)}
+.doc-tools .spacer{margin-right:auto;font-weight:600}
+
+/* ---------- Titres ---------- */
+h1,h2,h3,h4{font-family:"Manrope",Arial,sans-serif;color:var(--navy);line-height:1.25}
+
+h1{
+  font-size:26px;letter-spacing:.01em;margin:0 0 6px;
+  padding-bottom:16px;border-bottom:3px solid var(--sky);
+}
+h2{
+  font-size:18px;margin:34px 0 12px;padding-top:8px;
+  border-top:1px solid var(--line);
+}
+h2:first-of-type{border-top:none;padding-top:0}
+h3{font-size:15px;margin:22px 0 8px;color:var(--sky-dark)}
+
+p{margin:10px 0}
+strong{color:var(--navy)}
+hr{border:none;border-top:1px solid var(--line);margin:26px 0}
+
+/* ---------- Tableaux ---------- */
+table{
+  width:100%;border-collapse:collapse;margin:14px 0 18px;
+  font-size:13px;
+}
+th,td{
+  text-align:left;padding:8px 11px;border:1px solid var(--line);
+  vertical-align:top;
+}
+th{
+  background:var(--mist);color:var(--navy);
+  font-family:"Manrope",Arial,sans-serif;font-size:11.5px;
+  text-transform:uppercase;letter-spacing:.06em;font-weight:800;
+}
+tbody tr:nth-child(even) td{background:#FAFDFF}
+td code{white-space:nowrap}
+
+/* ---------- Code ---------- */
+code{
+  background:#EFF6FA;border:1px solid #DCE9F1;border-radius:4px;
+  padding:1px 5px;font-size:12.5px;color:#0A5573;
+  font-family:"SFMono-Regular",Consolas,monospace;
+}
+pre{
+  background:var(--navy);color:#E6F4FB;border-radius:8px;
+  padding:16px 18px;overflow:auto;font-size:12px;line-height:1.5;
+}
+pre code{background:none;border:none;color:inherit;padding:0}
+
+/* ---------- Schéma ASCII ---------- */
+pre.schema{font-size:11.5px;line-height:1.45}
+
+/* ---------- Listes ---------- */
+ul,ol{margin:10px 0 12px;padding-left:22px}
+li{margin:5px 0}
+
+/* ---------- Citations / notes ---------- */
+blockquote{
+  margin:14px 0;padding:12px 16px;
+  background:var(--mist);border-left:4px solid var(--sky);border-radius:6px;
+  color:#123;
+}
+blockquote p{margin:4px 0}
+
+/* ---------- Pied de page ---------- */
+.doc-foot{
+  margin-top:36px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--grey);text-align:center;
+}
+
+/* ---------- Impression ---------- */
+@page{
+  size:A4;
+  margin:16mm 14mm 18mm;
+}
+
+@media print{
+  body{background:#fff;font-size:10.6pt;line-height:1.5}
+  .doc{
+    width:auto;margin:0;padding:0;
+    box-shadow:none;border-radius:0;
+  }
+  .doc-tools{display:none !important}
+
+  h1{font-size:19pt;border-bottom-width:2pt}
+  h2{font-size:13pt;margin:18pt 0 7pt;border-top:.5pt solid #D7D7D7;page-break-after:avoid}
+  h3{font-size:11pt;page-break-after:avoid}
+
+  table{font-size:8.6pt;page-break-inside:avoid}
+  th{font-size:8pt}
+  th,td{padding:4.5pt 6pt}
+
+  pre{font-size:8pt;page-break-inside:avoid}
+  pre.schema{font-size:7.4pt}
+
+  blockquote{background:#F3FBFF !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  th,td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* Éviter qu'un titre reste seul en bas de page */
+  h1,h2,h3{break-after:avoid}
+  table,pre,blockquote{break-inside:avoid}
+
+  a{color:inherit;text-decoration:none}
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:7.5pt;color:#666}
+}
+
+/* ---------- Écran étroit ---------- */
+@media screen and (max-width:720px){
+  .doc{margin:0;padding:26px 20px 40px;border-radius:0}
+  h1{font-size:21px}
+  table{font-size:12px}
+  th,td{padding:6px 8px}
+}
