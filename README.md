@@ -245,8 +245,17 @@ Deux versions du même document, tenues à jour ensemble :
 
 | Fichier | Usage |
 |---|---|
-| `docs/fiche-technique.md` | Version Markdown, lisible et modifiable dans le dépôt |
-| `fiche-technique.html` | Version imprimable : ouvrir la page puis `Ctrl + P` → *Enregistrer au format PDF* |
+| `docs/fiche-technique-GLOBAL-SOLUTIONS.pdf` | **Version à envoyer au client** — 6 pages, A4, téléchargeable depuis la page |
+| `docs/fiche-technique.md` | Version Markdown, source unique, lisible et modifiable dans le dépôt |
+| `fiche-technique.html` | Page de consultation et de téléchargement (bouton « Télécharger le PDF », `Ctrl + P` possible) |
+| `tools/generate-fiche-technique-pdf.py` | Régénère le PDF depuis le Markdown après toute modification |
+
+Régénérer le PDF après avoir édité le Markdown :
+
+```bash
+pip install reportlab
+python3 tools/generate-fiche-technique-pdf.py
+```
 
 Elle couvre : identification, périmètre livré, architecture, technologies, base de données, stockage, sécurité, notifications, accessibilité, SEO, dépendances, hébergement, sauvegarde, coûts et limites.
 
