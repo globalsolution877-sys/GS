@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#04293B">
+<title>Fiche technique — Site institutionnel GLOBAL SOLUTIONS</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Fiche technique du site institutionnel GLOBAL SOLUTIONS : architecture, base de données, sécurité, hébergement et exploitation.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logos/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/logos/logo-180.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/fiche-technique.css">
+</head>
+<body>
+
+<div class="doc-tools">
+  <span class="spacer">Fiche technique · GLOBAL SOLUTIONS</span>
+  <a class="doc-dl" href="docs/fiche-technique-GLOBAL-SOLUTIONS.pdf" download="Fiche-technique-GLOBAL-SOLUTIONS.pdf" type="application/pdf">⬇ Télécharger le PDF</a>
+  <button type="button" onclick="window.print()">Imprimer</button>
+  <a href="index.html">← Site</a>
+</div>
+
+<main class="doc">
+
+<h1>FICHE TECHNIQUE — SITE INSTITUTIONNEL GLOBAL SOLUTIONS</h1>
+<p><strong>Document destiné au client</strong> · Édition du 11 novembre 2026</p>
+
+<div class="doc-download">
+  <div>
+    <strong>Version PDF prête à envoyer au client</strong>
+    <span>6 pages · mise en page A4 · en-tête et pagination</span>
+  </div>
+  <a class="doc-dl-btn" href="docs/fiche-technique-GLOBAL-SOLUTIONS.pdf" download="Fiche-technique-GLOBAL-SOLUTIONS.pdf" type="application/pdf">⬇ Télécharger le PDF</a>
+</div>
+
+<hr>
+
+<h2>1. Identification</h2>
+<table>
+<thead><tr><th>Rubrique</th><th>Valeur</th></tr></thead>
+<tbody>
+<tr><td>Titulaire</td><td>GLOBAL SOLUTIONS SARL — Niamey, Niger (Quartier Koira Kano, BP 12052)</td></tr>
+<tr><td>Immatriculation</td><td>RCCM-NI-NIA-2017-B-003 · NIF 40242/R</td></tr>
+<tr><td>Objet</td><td>Site institutionnel multipage avec espace d'administration</td></tr>
+<tr><td>Adresse de production</td><td><code>https://jwc9.vercel.app</code></td></tr>
+<tr><td>Nom de domaine prévu</td><td><code>globalsolutions.one</code> (non encore rattaché — voir § 12)</td></tr>
+<tr><td>Dépôt du code</td><td><code>github.com/globalsolution877-sys/GS</code></td></tr>
+<tr><td>Version de la fiche</td><td>1.0 — 11/11/2026</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>2. Périmètre livré</h2>
+
+<h3>2.1 Pages publiques (8)</h3>
+<table>
+<thead><tr><th>Page</th><th>Fichier</th><th>Contenu</th></tr></thead>
+<tbody>
+<tr><td>Accueil</td><td><code>index.html</code></td><td>Héro, indicateurs, expertises, atouts, méthode, appel à l'action</td></tr>
+<tr><td>À propos</td><td><code>a-propos.html</code></td><td>Identité, histoire, mission, valeurs, organisation</td></tr>
+<tr><td>Nos expertises</td><td><code>expertises.html</code></td><td>9 domaines détaillés, prestations et secteurs</td></tr>
+<tr><td>Nos réalisations</td><td><code>realisations.html</code></td><td>Catalogue filtrable des projets, présentation détaillée par fiche</td></tr>
+<tr><td>Notre équipe</td><td><code>equipe.html</code></td><td>Direction, portraits, fonctions</td></tr>
+<tr><td>Actualités</td><td><code>actualites.html</code></td><td>Articles publiés, lecture en fenêtre modale</td></tr>
+<tr><td>Contact</td><td><code>contact.html</code></td><td>Formulaire de devis, coordonnées, carte</td></tr>
+<tr><td>Erreur 404</td><td><code>404.html</code></td><td>Page de renvoi personnalisée</td></tr>
+</tbody>
+</table>
+
+<h3>2.2 Espace d'administration (1 page protégée)</h3>
+<p><code>admin.html</code> — accès discret par double-clic (ou Ctrl + clic, ou appui long sur mobile) sur le logo du site. Dix sections : tableau de bord, demandes, réalisations, actualités, expertises, équipe, textes du site, indicateurs, notifications, réglages.</p>
+
+<h3>2.3 Volumétrie du code</h3>
+<table>
+<thead><tr><th>Élément</th><th>Mesure</th></tr></thead>
+<tbody>
+<tr><td>Pages HTML</td><td>9 fichiers (606 lignes de balisage)</td></tr>
+<tr><td>Feuilles de style</td><td>4 fichiers CSS (504 lignes)</td></tr>
+<tr><td>Scripts</td><td>8 fichiers JavaScript (2 165 lignes)</td></tr>
+<tr><td>Ressources graphiques</td><td>5 fichiers (logos, favicons, carte de partage)</td></tr>
+<tr><td>Bibliothèques tierces</td><td><strong>aucune</strong> — aucun framework, aucun gestionnaire de paquets</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>3. Architecture technique</h2>
+<p>Le site repose sur une séparation nette entre <strong>présentation</strong> et <strong>données</strong> :</p>
+<pre class="schema">   Navigateur du visiteur
+            │
+            │  HTTPS
+            ▼
+   ┌─────────────────────┐
+   │  Hébergement statique│   HTML + CSS + JavaScript
+   │  (Vercel)            │   aucun serveur applicatif
+   └─────────┬───────────┘
+             │  API REST / API Auth / API Storage (HTTPS)
+             ▼
+   ┌─────────────────────┐
+   │  Supabase            │   PostgreSQL 17 · authentification
+   │  (eu-west-1)         │   stockage de fichiers · Edge Function
+   └─────────┬───────────┘
+             │  appel HTTP sortant
+             ▼
+   ┌─────────────────────┐
+   │  Service d'e-mail    │   notification des demandes de contact
+   │  (Resend)            │
+   └─────────────────────┘</pre>
+
+<p><strong>Conséquences de ce choix d'architecture :</strong></p>
+<ul>
+<li>Aucun serveur d'application à maintenir, à surveiller ni à corriger (pas de PHP, pas de Node côté serveur).</li>
+<li>Aucun contenu n'est écrit en dur : les textes, chiffres, expertises, membres, projets et actualités proviennent de la base et s'affichent à la demande.</li>
+<li>Si la base est momentanément injoignable, les pages restent lisibles : le balisage statique sert de repli, aucune page blanche.</li>
+<li>Les fichiers sont servis avec mise en cache HTTP, sans traitement côté serveur.</li>
+</ul>
+
+<hr>
+
+<h2>4. Technologies mises en œuvre</h2>
+<table>
+<thead><tr><th>Couche</th><th>Technologie</th><th>Version / norme</th></tr></thead>
+<tbody>
+<tr><td>Balisage</td><td>HTML5 sémantique</td><td>—</td></tr>
+<tr><td>Présentation</td><td>CSS3 (variables, grille, Flexbox)</td><td>—</td></tr>
+<tr><td>Comportement</td><td>JavaScript ES6+</td><td>modules natifs, sans transpilation</td></tr>
+<tr><td>Base de données</td><td>PostgreSQL</td><td>17 (canal GA)</td></tr>
+<tr><td>Plateforme de données</td><td>Supabase</td><td>région <code>eu-west-1</code> (Irlande)</td></tr>
+<tr><td>Traitement e-mail</td><td>Edge Function Deno</td><td><code>notify-contact</code>, version 11</td></tr>
+<tr><td>Envoi d'e-mail</td><td>Resend (API REST)</td><td>fournisseur principal</td></tr>
+<tr><td>Envoi d'e-mail (secours)</td><td>Brevo (API REST)</td><td>fournisseur de repli, détecté automatiquement</td></tr>
+<tr><td>Hébergement</td><td>Vercel</td><td>CDN mondial, HTTPS automatique</td></tr>
+<tr><td>Typographie</td><td>Google Fonts — Inter, Manrope</td><td>—</td></tr>
+<tr><td>Cartographie</td><td>OpenStreetMap</td><td>—</td></tr>
+</tbody>
+</table>
+<p><strong>Exigence client :</strong> aucun navigateur obsolète n'est ciblé. Le site fonctionne sur les versions actuelles de Chrome, Edge, Firefox, Safari (ordinateur et mobile), y compris en connexion lente.</p>
+
+<hr>
+
+<h2>5. Base de données</h2>
+<p>11 tables, 20 règles de sécurité (RLS) au niveau ligne, 3 fonctions SQL, isolation stricte entre lecture publique et écriture administrative.</p>
+<table>
+<thead><tr><th>Table</th><th>Rôle</th><th>Lignes indicatives</th></tr></thead>
+<tbody>
+<tr><td><code>pages_contenu</code></td><td>Tous les textes éditoriaux, par page et par clé</td><td>11</td></tr>
+<tr><td><code>site_settings</code></td><td>Coordonnées, WhatsApp, réseaux sociaux, adresse de notification</td><td>8</td></tr>
+<tr><td><code>expertises</code></td><td>Les 9 domaines d'intervention (ordre, activation)</td><td>9</td></tr>
+<tr><td><code>equipe</code></td><td>Membres de la direction (fonction, bio, portrait, ordre)</td><td>4</td></tr>
+<tr><td><code>stats</code></td><td>Indicateurs chiffrés de l'accueil</td><td>4</td></tr>
+<tr><td><code>realisations</code></td><td>Projets du catalogue : fiche, couverture, galerie, ordre, statut</td><td>0</td></tr>
+<tr><td><code>actualites</code></td><td>Articles : titre, extrait, contenu, image, date, statut</td><td>0</td></tr>
+<tr><td><code>contact_messages</code></td><td>Demandes reçues par le formulaire</td><td>0</td></tr>
+<tr><td><code>notifications</code></td><td>Journal des envois d'e-mail (statut, fournisseur, détail)</td><td>—</td></tr>
+<tr><td><code>admins</code></td><td>Comptes autorisés à administrer</td><td>2</td></tr>
+<tr><td><code>app_config</code></td><td>Réglages sensibles (code d'invitation, URL du projet)</td><td>2</td></tr>
+</tbody>
+</table>
+
+<h3>5.1 Modèle de données du catalogue</h3>
+<p>La table <code>realisations</code> porte deux champs dédiés aux images :</p>
+<ul>
+<li><code>image_url</code> — photographie de couverture ;</li>
+<li><code>galerie</code> — tableau d'URL contenant toutes les photographies du projet (la première sert de couverture) ;</li>
+<li><code>ordre</code> — rang d'affichage manuel dans le catalogue.</li>
+</ul>
+
+<h3>5.2 Fraîcheur des données</h3>
+<p>Les contenus lus par le site public sont mis en cache dans le navigateur pendant <strong>5 minutes</strong>. Une modification faite dans l'administration apparaît donc immédiatement pour l'administrateur connecté, et dans les 5 minutes au plus pour un visiteur déjà venu sur le site.</p>
+
+<hr>
+
+<h2>6. Stockage de fichiers</h2>
+<table>
+<thead><tr><th>Bucket</th><th>Usage</th><th>Accès public</th><th>Limite par fichier</th><th>Formats acceptés</th></tr></thead>
+<tbody>
+<tr><td><code>realisations</code></td><td>Photographies des projets</td><td>Lecture seule</td><td>10 Mo</td><td>JPEG, PNG, WEBP, AVIF, GIF</td></tr>
+<tr><td><code>equipe</code></td><td>Portraits des membres</td><td>Lecture seule</td><td>10 Mo</td><td>JPEG, PNG, WEBP, AVIF, GIF</td></tr>
+</tbody>
+</table>
+<p>Huit règles de sécurité encadrent ces deux buckets : lecture ouverte à tous, écriture, modification et suppression <strong>strictement réservées aux comptes administrateurs</strong>.</p>
+<p><strong>Réduction automatique à l'envoi.</strong> Toute photographie est redimensionnée dans le navigateur avant l'envoi : plus grand côté ramené à 1 800 pixels, encodage JPEG à 82 % de qualité. Une photo de téléphone de 8 Mo descend généralement sous 400 Ko. Ce traitement garantit un envoi fiable en connexion mobile et n'altère pas la qualité perçue à l'écran.</p>
+
+<hr>
+
+<h2>7. Sécurité</h2>
+<table>
+<thead><tr><th>Contrôle</th><th>Mise en œuvre</th></tr></thead>
+<tbody>
+<tr><td>Authentification</td><td>Supabase Auth, e-mail et mot de passe ; jeton JWT d'une heure</td></tr>
+<tr><td>Session</td><td>Conservée en <code>sessionStorage</code> — effacée à la fermeture de l'onglet</td></tr>
+<tr><td>Autorisation en écriture</td><td>Fonction <code>public.is_admin()</code> vérifiée <strong>en base</strong> à chaque écriture, jamais dans le navigateur</td></tr>
+<tr><td>Isolation par ligne</td><td>RLS active sur les 11 tables ; lecture publique limitée aux contenus publiés</td></tr>
+<tr><td>Lecture publique</td><td><code>realisations</code> et <code>actualites</code> ne sont visibles que si <code>statut = 'publie'</code> ; <code>expertises</code>, <code>equipe</code>, <code>stats</code> que si <code>actif = true</code></td></tr>
+<tr><td>Messages de contact</td><td>Écriture anonyme autorisée en insertion uniquement ; lecture, modification et suppression réservées aux administrateurs</td></tr>
+<tr><td>Réglages sensibles</td><td>La table <code>app_config</code> n'expose <strong>aucune</strong> règle d'accès : elle n'est lisible que par les fonctions internes</td></tr>
+<tr><td>Inscription</td><td>Soumise à un code d'invitation vérifié en base ; toute création sans code valide est rejetée</td></tr>
+<tr><td>Clé exposée</td><td>Seule la clé publique <code>anon</code> figure dans le code ; la clé <code>service_role</code> n'est <strong>jamais</strong> transmise au navigateur</td></tr>
+<tr><td>Référencement</td><td><code>admin.html</code> exclu par <code>robots.txt</code> et balise <code>noindex</code></td></tr>
+<tr><td>Transport</td><td>HTTPS obligatoire de bout en bout</td></tr>
+</tbody>
+</table>
+<p><strong>Vérification effectuée :</strong> une requête d'écriture émise sans compte administrateur est rejetée par la base (violation de règle RLS), quel que soit le contenu du code côté navigateur.</p>
+
+<hr>
+
+<h2>8. Notification des demandes de contact</h2>
+<p>Chaîne complète, chaque maillon journalisé :</p>
+<pre class="schema">Formulaire du site
+   └─► insertion dans contact_messages
+          └─► trigger PostgreSQL on_contact_message_created
+                 └─► Edge Function notify-contact
+                        └─► Resend (ou Brevo)
+                               └─► boîte de réception
+                                      + journal dans la table notifications</pre>
+<table>
+<thead><tr><th>État journalisé</th><th>Signification</th></tr></thead>
+<tbody>
+<tr><td><code>envoye</code></td><td>Message transmis au fournisseur, identifiant d'envoi enregistré</td></tr>
+<tr><td><code>non_configure</code></td><td>Chaîne fonctionnelle, clé d'API absente</td></tr>
+<tr><td><code>echec</code></td><td>Fournisseur en erreur (domaine non vérifié, quota, clé refusée) — motif conservé</td></tr>
+<tr><td><code>erreur_trigger</code></td><td>Incident technique côté base</td></tr>
+</tbody>
+</table>
+<p><strong>Garantie de continuité :</strong> un incident d'envoi n'empêche jamais l'enregistrement de la demande. Le message reste consultable dans l'onglet « Demandes » de l'administration, quel que soit l'état de la notification.</p>
+
+<hr>
+
+<h2>9. Accessibilité et performance</h2>
+<table>
+<thead><tr><th>Point</th><th>État</th></tr></thead>
+<tbody>
+<tr><td>Structure sémantique</td><td>HTML5 : <code>header</code>, <code>nav</code>, <code>main</code>, <code>section</code>, <code>article</code>, <code>footer</code></td></tr>
+<tr><td>Alternatives textuelles</td><td>51 attributs <code>alt</code> renseignés</td></tr>
+<tr><td>Navigation au clavier</td><td>Menus, filtres, fiches projets et visionneuses utilisables sans souris ; fermeture par <code>Échap</code></td></tr>
+<tr><td>Animations</td><td>Respect de <code>prefers-reduced-motion</code> : animations désactivées si le système le demande</td></tr>
+<tr><td>Chargement différé</td><td>35 images en <code>loading="lazy"</code> ; image d'accueil prioritaire</td></tr>
+<tr><td>Poids des pages</td><td>3 à 19 Ko de balisage par page, hors images</td></tr>
+<tr><td>Dépendances</td><td>Aucun framework JavaScript ; aucune bibliothèque à charger</td></tr>
+<tr><td>Compatibilité mobile</td><td>Mise en page adaptative du smartphone au grand écran</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>10. Référencement (SEO)</h2>
+<ul>
+<li>Balises <code>title</code> et <code>description</code> propres à chaque page.</li>
+<li>URL canoniques déclarées.</li>
+<li>Open Graph et Twitter Card pour le partage social, avec carte de partage dédiée (1 200 × 630).</li>
+<li>Données structurées <code>application/ld+json</code> (Schema.org) sur l'accueil, la page « À propos » et la page « Contact ».</li>
+<li><code>sitemap.xml</code> et <code>robots.txt</code> à la racine.</li>
+<li>Favicons multi-résolutions et icône Apple.</li>
+</ul>
+
+<hr>
+
+<h2>11. Dépendances externes</h2>
+<table>
+<thead><tr><th>Service</th><th>Rôle</th><th>Criticité</th><th>Comportement en cas d'indisponibilité</th></tr></thead>
+<tbody>
+<tr><td>Supabase</td><td>Données, authentification, stockage</td><td><strong>Critique</strong></td><td>Contenus statiques conservés ; administration indisponible</td></tr>
+<tr><td>Vercel</td><td>Hébergement des fichiers</td><td><strong>Critique</strong></td><td>Site inaccessible jusqu'au rétablissement</td></tr>
+<tr><td>Resend / Brevo</td><td>Notification e-mail</td><td>Importante</td><td>Demande enregistrée, notification rejouable</td></tr>
+<tr><td>Google Fonts</td><td>Typographie</td><td>Faible</td><td>Police de substitution système</td></tr>
+<tr><td>OpenStreetMap</td><td>Carte de la page Contact</td><td>Faible</td><td>Carte non affichée</td></tr>
+<tr><td>Unsplash</td><td>Visuels de démonstration</td><td>Nulle</td><td>Emplacements provisoires uniquement</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>12. Hébergement, déploiement et points à finaliser</h2>
+
+<h3>12.1 État actuel</h3>
+<table>
+<thead><tr><th>Élément</th><th>État</th></tr></thead>
+<tbody>
+<tr><td>Site en ligne</td><td><strong>Oui</strong> — <code>https://jwc9.vercel.app</code></td></tr>
+<tr><td>HTTPS</td><td><strong>Oui</strong> — certificat automatique</td></tr>
+<tr><td>Nom de domaine <code>globalsolutions.one</code></td><td><strong>Non rattaché</strong> — les URL canoniques, <code>sitemap.xml</code> et <code>robots.txt</code> le mentionnent déjà</td></tr>
+<tr><td>Déploiement continu</td><td><strong>Oui</strong> — chaque fusion sur la branche <code>main</code> redéploie le site</td></tr>
+</tbody>
+</table>
+
+<h3>12.2 Points à finaliser</h3>
+<table>
+<thead><tr><th>#</th><th>Point</th><th>Incidence</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Rattacher le domaine <code>globalsolutions.one</code> chez Vercel (enregistrements DNS)</td><td>Le référencement ne portera ses fruits qu'avec le domaine définitif</td></tr>
+<tr><td>2</td><td>Vérifier le domaine chez Resend (SPF, DKIM, DMARC)</td><td>Sans cela, les notifications ne peuvent être adressées qu'à l'adresse du compte Resend</td></tr>
+<tr><td>3</td><td>Aligner l'adresse de contact affichée</td><td>Le site affiche <code>globalsolution877@gmail.com</code> ; le code prévoit <code>info@globalsolutions.one</code></td></tr>
+<tr><td>4</td><td>Renseigner les réalisations</td><td>Le catalogue affiche 9 emplacements « À compléter » tant qu'aucun projet n'est publié</td></tr>
+<tr><td>5</td><td>Fournir les portraits officiels</td><td>Les membres s'affichent avec leurs initiales</td></tr>
+<tr><td>6</td><td>Rédiger les actualités</td><td>Section vide à ce jour</td></tr>
+<tr><td>7</td><td>Épingler les coordonnées GPS exactes</td><td>Carte indicative centrée sur Niamey</td></tr>
+<tr><td>8</td><td>Définir la politique de sauvegarde</td><td>Voir § 13</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>13. Sauvegarde et exploitation</h2>
+<table>
+<thead><tr><th>Opération</th><th>Procédure</th><th>Responsable</th></tr></thead>
+<tbody>
+<tr><td>Sauvegarde de la base</td><td>Sauvegardes automatiques de la plateforme Supabase ; export SQL possible à tout moment</td><td>Prestataire / client</td></tr>
+<tr><td>Sauvegarde des fichiers</td><td>Buckets <code>realisations</code> et <code>equipe</code> — copie de sécurité à planifier</td><td>Prestataire</td></tr>
+<tr><td>Gestion des accès</td><td>Ajout ou réinitialisation d'un compte : Supabase → Authentication → Users</td><td>Client</td></tr>
+<tr><td>Retrait d'un accès</td><td>Suppression du compte <strong>et</strong> de sa ligne dans la table <code>admins</code></td><td>Client</td></tr>
+<tr><td>Changement du code d'invitation</td><td>Requête sur la table <code>app_config</code>, clé <code>invite_code</code></td><td>Prestataire / client</td></tr>
+<tr><td>Publication d'un projet</td><td>Administration → Réalisations</td><td>Client</td></tr>
+<tr><td>Suivi des demandes</td><td>Administration → Demandes ; alertes par e-mail</td><td>Client</td></tr>
+<tr><td>Journal des e-mails</td><td>Administration → Notifications (50 derniers envois)</td><td>Client</td></tr>
+<tr><td>Retour arrière sur le code</td><td>Restauration d'une version antérieure depuis le dépôt</td><td>Prestataire</td></tr>
+</tbody>
+</table>
+
+<h3>13.1 Recommandations de sécurité à la mise en service</h3>
+<ol>
+<li>Créer un mot de passe robuste et unique pour chaque compte administrateur.</li>
+<li>Modifier le code d'invitation s'il a été communiqué à des tiers.</li>
+<li>Restreindre l'accès au dépôt de code si celui-ci doit rester privé.</li>
+<li>Activer la double authentification sur les comptes Supabase, Vercel et Resend.</li>
+<li>Programmer une vérification trimestrielle des comptes administrateurs actifs.</li>
+</ol>
+
+<hr>
+
+<h2>14. Coûts de fonctionnement</h2>
+<table>
+<thead><tr><th>Service</th><th>Formule</th><th>Coût mensuel</th></tr></thead>
+<tbody>
+<tr><td>Vercel</td><td>Offre gratuite (usage institutionnel)</td><td>0</td></tr>
+<tr><td>Supabase</td><td>Offre gratuite</td><td>0</td></tr>
+<tr><td>Resend</td><td>Offre gratuite — 3 000 e-mails par mois</td><td>0</td></tr>
+<tr><td>Nom de domaine</td><td>Enregistrement annuel</td><td>selon registraire</td></tr>
+</tbody>
+</table>
+<p>Les offres gratuites comportent des limites d'usage (volume de données, bande passante, nombre d'envois). Une montée en charge ou une exigence de disponibilité renforcée nécessitera un passage aux offres payantes.</p>
+
+<hr>
+
+<h2>15. Garanties et limites</h2>
+<p><strong>Ce qui est garanti par la conception</strong></p>
+<ul>
+<li>Aucune donnée client n'est accessible en écriture à un visiteur non authentifié.</li>
+<li>Aucune clé secrète n'est exposée dans le code livré au navigateur.</li>
+<li>Un incident d'e-mail ne bloque jamais l'enregistrement d'une demande.</li>
+<li>Une indisponibilité de la base ne provoque pas de page blanche.</li>
+</ul>
+<p><strong>Ce qui n'est pas couvert</strong></p>
+<ul>
+<li>La disponibilité des services tiers (Supabase, Vercel, Resend) relève de leurs propres engagements.</li>
+<li>Le contenu publié (textes, photographies, références de chantiers) relève de la responsabilité du client.</li>
+<li>Aucune prestation de référencement actif, de publicité en ligne ou de rédaction de contenu n'est incluse.</li>
+</ul>
+
+<hr>
+
+<h2>16. Intervention et support</h2>
+<table>
+<thead><tr><th>Nature</th><th>Contact</th></tr></thead>
+<tbody>
+<tr><td>Incident bloquant le site ou l'administration</td><td>Prestataire — intervention prioritaire</td></tr>
+<tr><td>Ajout ou retrait d'un compte administrateur</td><td>Client (procédure § 13) ou prestataire</td></tr>
+<tr><td>Modification de la structure du site</td><td>Prestataire — nouvelle commande</td></tr>
+</tbody>
+</table>
+
+<p class="doc-foot">Fiche technique établie à partir de l'état effectif du système vérifié le 11 novembre 2026 :<br>
+base de données, stockage, fonctions déployées et fichiers du dépôt.</p>
+
+</main>
+
+</body>
+</html>

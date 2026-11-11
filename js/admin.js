@@ -166,12 +166,18 @@
   }
 
   async function uploadOne(file) {
+    return uploadTo(BUCKET, file);
+  }
+
+  // Televersement dans un bucket donne ('realisations' pour le catalogue,
+  // 'equipe' pour les portraits). Chaque bucket a ses propres policies.
+  async function uploadTo(bucket, file) {
     if (!admin) throw new Error('Session expirée');
     if (!/^image\//.test(file.type)) throw new Error('« ' + file.name + ' » n\u2019est pas une image.');
     if (file.size > MAX_INPUT) throw new Error('« ' + file.name + ' » dépasse 25 Mo.');
     const blob = await compressImage(file);
     const path = storagePath(file);
-    const res = await fetch(cfg.url + '/storage/v1/object/' + BUCKET + '/' + encodeURIComponent(path), {
+    const res = await fetch(cfg.url + '/storage/v1/object/' + bucket + '/' + encodeURIComponent(path), {
       method: 'POST',
       headers: {
         apikey: cfg.anonKey,
@@ -193,16 +199,25 @@
       } catch (e) {}
       throw new Error(msg);
     }
-    return cfg.url + '/storage/v1/object/public/' + BUCKET + '/' + path;
+    return cfg.url + '/storage/v1/object/public/' + bucket + '/' + path;
+  }
+
+  // Televersement d'une image unique (portrait) : renvoie son URL publique
+  async function uploadSingle(bucket, file) {
+    return uploadTo(bucket, file);
   }
 
   // Envoi d'au moins deux photos en parallele (plus rapide, moins d'erreurs reseau)
   async function uploadAll(files, onProgress) {
+    return uploadAllTo(BUCKET, files, onProgress);
+  }
+
+  async function uploadAllTo(bucket, files, onProgress) {
     const list = Array.from(files);
     const urls = new Array(list.length);
     let done = 0;
     const worker = async (i) => {
-      urls[i] = await uploadOne(list[i]);
+      urls[i] = await uploadTo(bucket, list[i]);
       done += 1;
       if (onProgress) onProgress(done, list.length);
     };
@@ -483,26 +498,46 @@
     // -------------------------------------------------------------- Équipe
     equipe: async () => {
       const rows = await api('equipe?select=*&order=ordre.asc');
+      const avecPhoto = rows.filter((m) => m.photo_url).length;
       return `
-      <div class="a-card"><h2>Ajouter un membre</h2>
-        <p class="a-sub">Les initiales servent d'avatar tant qu'aucune photo officielle n'est fournie.</p>
+      <div class="a-card">
+        <h2>Ajouter un membre</h2>
+        <p class="a-sub">Choisissez le portrait depuis la galerie de votre téléphone ou de votre ordinateur. Sans photo, les initiales servent d'avatar.</p>
         <form class="a-form" id="formEquipe">
           <label>Nom complet<input name="nom" required></label>
           <label>Fonction<input name="fonction" placeholder="Directeur Technique"></label>
-          <label>Initiales<input name="initiales" maxlength="3" placeholder="MB"></label>
-          <label>Ordre<input name="ordre" type="number" value="${rows.length + 1}"></label>
-          <label class="full">Biographie<textarea name="bio"></textarea></label>
-          <label class="full">Photo officielle (URL, optionnel)<input name="photo_url" type="url"><small>Laissez vide pour conserver l'avatar avec initiales.</small></label>
-          <div class="a-form-foot"><button class="a-btn primary">Enregistrer</button></div>
+          <label>Initiales<input name="initiales" maxlength="3" placeholder="MB"><small>Affichées si aucune photo n'est fournie.</small></label>
+          <label>Ordre d'affichage<input name="ordre" type="number" value="${rows.length + 1}"></label>
+          <label class="full">Biographie<textarea name="bio" placeholder="Parcours, compétences, responsabilités…"></textarea></label>
+          <div class="full">
+            <label class="gs-upload" id="dropEquipe">
+              <input type="file" id="fileEquipe" accept="image/*" hidden>
+              <span class="gs-upload__icon" aria-hidden="true">🖼️</span>
+              <strong>Choisir le portrait</strong>
+              <small>Depuis la galerie ou l'appareil photo · JPG, PNG, WEBP · 10 Mo max · le cadrage carré est recommandé</small>
+            </label>
+            <div class="gs-previews" id="previewEquipe"></div>
+          </div>
+          <div class="a-form-foot"><button type="submit" class="a-btn primary">Enregistrer le membre</button></div>
         </form>
       </div>
-      <div class="a-card"><h2>L'équipe (${rows.length})</h2>
-        <table class="a-table"><thead><tr><th>Nom</th><th>Fonction</th><th>État</th><th></th></tr></thead><tbody>
-        ${rows.map((m) => `<tr><td><strong>${esc(m.nom)}</strong></td><td>${esc(m.fonction || '')}</td>
-          <td><span class="a-badge ${m.actif ? 'pub' : ''}">${m.actif ? 'active' : 'masqué'}</span></td>
-          <td><div class="a-actions"><button class="a-btn" data-edit="equipe:${m.id}">Modifier</button>
-          <button class="a-btn" data-toggle="equipe:${m.id}:actif">${m.actif ? 'Masquer' : 'Afficher'}</button></div></td></tr>`).join('')}
-        </tbody></table>
+      <div class="a-card">
+        <h2>L'équipe (${rows.length} membre${rows.length > 1 ? 's' : ''} · ${avecPhoto} portrait${avecPhoto > 1 ? 's' : ''})</h2>
+        ${rows.length ? `<table class="a-table"><thead><tr><th></th><th>Nom</th><th>Fonction</th><th>Ordre</th><th>État</th><th></th></tr></thead><tbody>
+        ${rows.map((m) => `<tr>
+          <td>${m.photo_url
+            ? `<img class="a-avatar" src="${esc(m.photo_url)}" alt="">`
+            : `<span class="a-avatar a-avatar--init">${esc(m.initiales || (m.nom || '').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase())}</span>`}</td>
+          <td><strong>${esc(m.nom)}</strong></td>
+          <td>${esc(m.fonction || '')}</td>
+          <td>${esc(m.ordre == null ? '' : m.ordre)}</td>
+          <td><span class="a-badge ${m.actif ? 'pub' : ''}">${m.actif ? 'actif' : 'masqué'}</span></td>
+          <td><div class="a-actions">
+            <button class="a-btn" data-edit-membre="${m.id}">Photos / fiche</button>
+            <button class="a-btn" data-toggle="equipe:${m.id}:actif">${m.actif ? 'Masquer' : 'Afficher'}</button>
+            <button class="a-btn danger" data-del="equipe:${m.id}">Supprimer</button>
+          </div></td></tr>`).join('')}
+        </tbody></table>` : `<div class="a-empty"><strong>Aucun membre</strong>Ajoutez les membres de la direction pour les afficher sur le site.</div>`}
       </div>`;
     },
 
@@ -803,7 +838,16 @@
         // nettoyage des champs vides
         Object.keys(data).forEach((k) => { if (data[k] === '') data[k] = k === 'annee' ? null : data[k]; });
         const isRealisation = conf.table === 'realisations';
+        const isEquipe = conf.table === 'equipe';
         try {
+          if (isEquipe) {
+            if (pickedPortrait) {
+              btn.textContent = 'Envoi du portrait…';
+              data.photo_url = await uploadSingle('equipe', pickedPortrait.file);
+            } else {
+              delete data.photo_url;
+            }
+          }
           if (isRealisation) {
             const photos = picked.slice();
             let url = [];
@@ -826,6 +870,7 @@
           await api(conf.table, { method: 'POST', body: conf.map(data), prefer: 'return=minimal' });
           toast(isRealisation ? 'Réalisation publiée avec ses photos' : 'Enregistré avec succès');
           if (isRealisation && window.__gsResetPicked) window.__gsResetPicked();
+          if (isEquipe && window.__gsResetPortrait) window.__gsResetPortrait();
           show(view);
         } catch (err) {
           toast(err.message, true);
@@ -837,9 +882,16 @@
     // ---------- Édition en ligne (expertises / équipe)
     $$('#adminContent [data-edit]').forEach((b) => b.addEventListener('click', () => openEdit(b.dataset.edit)));
 
+    // ---------- Portraits de l'equipe (formulaire d'ajout)
+    bindPortraitPicker();
+
     // ---------- Fiches realisations : photos, galerie et presentation
     $$('#adminContent [data-edit-real]').forEach((b) =>
       b.addEventListener('click', () => openRealisation(b.dataset.editReal)));
+
+    // ---------- Membres de l'equipe : portrait et fiche
+    $$('#adminContent [data-edit-membre]').forEach((b) =>
+      b.addEventListener('click', () => openMembre(b.dataset.editMembre)));
 
     $$('#adminContent [data-del-real]').forEach((b) => b.addEventListener('click', async () => {
       if (!confirm('Supprimer cette réalisation et toutes ses photos ?')) return;
@@ -875,11 +927,214 @@
   }
 
   // Retrouve le chemin du fichier dans le bucket a partir de son URL publique
-  function storageKeyFromUrl(url) {
+  function storageKeyFromUrl(url, bucket) {
     if (!url) return null;
-    const marker = '/object/public/' + BUCKET + '/';
+    const b = bucket || BUCKET;
+    const marker = '/object/public/' + b + '/';
     const i = url.indexOf(marker);
     return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length));
+  }
+
+  // ------------------- Portrait d'un membre de l'equipe --------------------
+  // Fichier choisi dans le formulaire d'ajout (un seul portrait)
+  let pickedPortrait = null;
+
+  function bindPortraitPicker() {
+    const input = $('#fileEquipe');
+    const drop = $('#dropEquipe');
+    const box = $('#previewEquipe') || document.createElement('div');
+    if (!input || !drop) return;
+    if (input.dataset.bound) return;
+    input.dataset.bound = '1';
+
+    function paint() {
+      box.innerHTML = pickedPortrait ? `
+        <figure class="gs-preview">
+          <img src="${pickedPortrait.preview}" alt="">
+          <figcaption><span class="gs-cover">Portrait</span>
+            <button type="button" data-drop-portrait title="Retirer">×</button></figcaption>
+        </figure>` : '';
+      const btn = box.querySelector('[data-drop-portrait]');
+      if (btn) btn.addEventListener('click', () => {
+        if (pickedPortrait) URL.revokeObjectURL(pickedPortrait.preview);
+        pickedPortrait = null; paint();
+      });
+    }
+
+    function add(file) {
+      if (!file) return;
+      if (!/^image\//.test(file.type)) { toast('Ce fichier n\u2019est pas une image', true); return; }
+      if (file.size > MAX_INPUT) { toast('« ' + file.name + ' » dépasse 25 Mo', true); return; }
+      if (pickedPortrait) URL.revokeObjectURL(pickedPortrait.preview);
+      pickedPortrait = { file, preview: URL.createObjectURL(file) };
+      paint();
+    }
+
+    input.addEventListener('change', () => { add(input.files && input.files[0]); input.value = ''; });
+    ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files[0]) add(e.dataTransfer.files[0]); });
+
+    window.__gsResetPortrait = () => {
+      if (pickedPortrait) URL.revokeObjectURL(pickedPortrait.preview);
+      pickedPortrait = null; paint();
+    };
+  }
+
+  // Modale d'edition d'un membre : portrait (ajout / remplacement) + fiche
+  async function openMembre(id) {
+    const rows = await api('equipe?select=*&id=eq.' + id);
+    const row = rows[0];
+    if (!row) return;
+    let nouveau = null;
+    const actuel = row.photo_url || '';
+
+    const modal = document.createElement('div');
+    modal.className = 'article-modal open';
+    modal.style.display = 'flex';
+    modal.innerHTML = `<div class="article-modal__panel" style="max-width:680px;background:#fff;padding:26px;border-radius:18px;max-height:90vh;overflow:auto">
+      <h2 style="margin-bottom:6px">Portrait et présentation</h2>
+      <p class="a-sub" style="margin-bottom:16px">Remplacez la photo officielle ou modifiez la fiche du membre.</p>
+
+      <div class="gs-portrait-edit">
+        <div class="gs-portrait-slot" id="portraitActuel"></div>
+        <div style="flex:1">
+          <label class="gs-upload" id="dropPortraitEdit">
+            <input type="file" id="portraitEdit" accept="image/*" hidden>
+            <span class="gs-upload__icon" aria-hidden="true">🖼️</span>
+            <strong>Choisir une nouvelle photo</strong>
+            <small>Depuis la galerie de l'appareil · le portrait actuel sera remplacé à l'enregistrement</small>
+          </label>
+          <button type="button" class="a-btn danger" id="retirerPortrait" style="margin-top:10px"${actuel ? '' : ' hidden'}>Retirer la photo</button>
+        </div>
+      </div>
+
+      <div class="a-form" style="margin-top:20px;grid-template-columns:1fr 1fr">
+        <label class="full">Nom complet<input data-membre="nom" value="${esc(row.nom || '')}"></label>
+        <label>Fonction<input data-membre="fonction" value="${esc(row.fonction || '')}"></label>
+        <label>Initiales<input data-membre="initiales" maxlength="3" value="${esc(row.initiales || '')}"></label>
+        <label>Ordre<input data-membre="ordre" type="number" value="${esc(row.ordre == null ? 0 : row.ordre)}"></label>
+        <label>État
+          <select data-membre="actif">
+            <option value="true"${row.actif ? ' selected' : ''}>Actif (visible)</option>
+            <option value="false"${!row.actif ? ' selected' : ''}>Masqué</option>
+          </select>
+        </label>
+        <label class="full">Biographie<textarea data-membre="bio">${esc(row.bio || '')}</textarea></label>
+      </div>
+
+      <div class="a-form-foot" style="margin-top:20px">
+        <button class="a-btn" data-cancel>Fermer</button>
+        <button class="a-btn primary" data-save>Enregistrer</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+
+    const slot = modal.querySelector('#portraitActuel');
+    const retirer = modal.querySelector('#retirerPortrait');
+    let supprimerActuel = false;
+
+    function paintSlot() {
+      if (nouveau) {
+        slot.innerHTML = `<img src="${nouveau.preview}" alt=""><span class="gs-portrait-tag">Nouveau</span>`;
+        retirer.hidden = false;
+        retirer.textContent = 'Annuler le changement';
+        return;
+      }
+      if (actuel && !supprimerActuel) {
+        slot.innerHTML = `<img src="${esc(actuel)}" alt=""><span class="gs-portrait-tag">Actuel</span>`;
+      } else {
+        slot.innerHTML = `<span class="a-avatar a-avatar--init a-avatar--big">${esc(row.initiales || (row.nom || '').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase())}</span>`;
+      }
+      retirer.textContent = 'Retirer la photo';
+      retirer.hidden = !actuel || supprimerActuel;
+    }
+    paintSlot();
+
+    const input = modal.querySelector('#portraitEdit');
+    const zone = modal.querySelector('#dropPortraitEdit');
+    input.addEventListener('change', () => {
+      const f = input.files && input.files[0];
+      if (!f) return;
+      if (!/^image\//.test(f.type)) { toast('Ce fichier n\u2019est pas une image', true); return; }
+      if (f.size > MAX_INPUT) { toast('« ' + f.name + ' » dépasse 25 Mo', true); return; }
+      if (nouveau) URL.revokeObjectURL(nouveau.preview);
+      nouveau = { file: f, preview: URL.createObjectURL(f) };
+      supprimerActuel = false;
+      input.value = '';
+      paintSlot();
+    });
+    ['dragenter', 'dragover'].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.remove('over'); }));
+    zone.addEventListener('drop', (e) => {
+      const f = e.dataTransfer && e.dataTransfer.files[0];
+      if (!f) return;
+      if (!/^image\//.test(f.type) || f.size > MAX_INPUT) { toast('Image refusée (format ou taille)', true); return; }
+      if (nouveau) URL.revokeObjectURL(nouveau.preview);
+      nouveau = { file: f, preview: URL.createObjectURL(f) };
+      supprimerActuel = false;
+      paintSlot();
+    });
+
+    retirer.addEventListener('click', () => {
+      if (nouveau) { URL.revokeObjectURL(nouveau.preview); nouveau = null; paintSlot(); return; }
+      supprimerActuel = true;
+      paintSlot();
+    });
+
+    modal.querySelector('[data-cancel]').onclick = () => modal.remove();
+    modal.querySelector('[data-save]').onclick = async () => {
+      const save = modal.querySelector('[data-save]');
+      const label = save.textContent;
+      save.disabled = true;
+      try {
+        const body = {};
+        modal.querySelectorAll('[data-membre]').forEach((f) => {
+          const k = f.dataset.membre;
+          if (k === 'ordre') body[k] = f.value ? Number(f.value) : 0;
+          else if (k === 'actif') body[k] = f.value === 'true';
+          else body[k] = f.value;
+        });
+
+        if (nouveau) {
+          save.textContent = 'Envoi du portrait…';
+          const url = await uploadSingle('equipe', nouveau.file);
+          body.photo_url = url;
+          // L'ancien fichier est retire du stockage pour ne pas accumuler d'orphelins
+          const ancienne = storageKeyFromUrl(actuel, 'equipe');
+          if (ancienne) {
+            try {
+              await fetch(cfg.url + '/storage/v1/object/equipe', {
+                method: 'DELETE',
+                headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + admin.access_token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prefixes: [ancienne] })
+              });
+            } catch (e) { /* sans consequence sur la fiche */ }
+          }
+          URL.revokeObjectURL(nouveau.preview);
+        } else if (supprimerActuel) {
+          body.photo_url = null;
+          const ancienne = storageKeyFromUrl(actuel, 'equipe');
+          if (ancienne) {
+            try {
+              await fetch(cfg.url + '/storage/v1/object/equipe', {
+                method: 'DELETE',
+                headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + admin.access_token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prefixes: [ancienne] })
+              });
+            } catch (e) { /* sans consequence */ }
+          }
+        }
+
+        await api('equipe?id=eq.' + id, { method: 'PATCH', body, prefer: 'return=minimal' });
+        modal.remove();
+        toast(nouveau ? 'Portrait mis à jour' : 'Fiche enregistrée');
+        show('equipe');
+      } catch (e) {
+        toast(e.message, true);
+        save.disabled = false; save.textContent = label;
+      }
+    };
   }
 
   async function openRealisation(id) {
@@ -1031,7 +1286,7 @@
     const labels = {
       titre: 'Titre', slug: 'Ancre', description: 'Description', tags: 'Mots-clés (virgules)',
       secteurs: 'Secteurs', image_url: 'Image (URL)', ordre: 'Ordre',
-      nom: 'Nom', fonction: 'Fonction', initiales: 'Initiales', bio: 'Biographie', photo_url: 'Photo (URL)'
+      nom: 'Nom', fonction: 'Fonction', initiales: 'Initiales', bio: 'Biographie'
     };
     const modal = document.createElement('div');
     modal.className = 'article-modal open';
@@ -1041,7 +1296,7 @@
       <div class="a-form">
       ${Object.keys(labels).filter((k) => k in row).map((k) => `
         <label class="${['description', 'bio', 'titre', 'nom', 'image_url', 'photo_url'].includes(k) ? 'full' : ''}">${labels[k]}
-        ${['description', 'bio', 'bio'].includes(k)
+        ${['description', 'bio'].includes(k)
           ? `<textarea data-edit-field="${k}">${esc(row[k] || '')}</textarea>`
           : `<input data-edit-field="${k}" value="${esc(k === 'tags' && Array.isArray(row[k]) ? row[k].join(', ') : (row[k] || ''))}">`}
         </label>`).join('')}
