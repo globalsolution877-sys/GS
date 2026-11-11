@@ -154,9 +154,11 @@ Via `/admin.html` → Actualités : `titre`, `extrait`, `contenu` (paragraphes s
 
 ## 📧 Notifications e-mail des demandes de contact
 
-La chaîne est **complète et testée** : formulaire → `contact_messages` → trigger `on_contact_message_created` → Edge Function `notify-contact` → journal `notifications`.
+La chaîne est **complète et testée de bout en bout** : formulaire → `contact_messages` → trigger `on_contact_message_created` → Edge Function `notify-contact` → journal `notifications`. Un envoi réel a été validé (`statut = envoye`, identifiant Resend retourné).
 
-Il ne reste qu'à brancher un fournisseur d'envoi (gratuit) :
+**État actuel :** `RESEND_API_KEY` est configurée et le destinataire est réglé sur `notify_email` (`globalsolution877@gmail.com`). L'expéditeur par défaut est `onboarding@resend.dev`, ce qui **n'autorise l'envoi que vers l'adresse du compte Resend**.
+
+➡️ **Pour recevoir les demandes sur une adresse professionnelle** (`info@globalsolutions.one`), il faut vérifier le domaine chez Resend (étape 1 et 3 ci-dessous), puis mettre `MAIL_FROM=GLOBAL SOLUTIONS <notifications@globalsolutions.one>`.
 
 ### 1. Créer une clé chez Resend (recommandé, 3 000 e-mails/mois gratuits)
 
@@ -190,6 +192,8 @@ L'onglet **Notifications** de l'administration affiche le journal des 50 dernier
 | `Non configuré` | Chaîne OK, clé API absente |
 | `Échec` | Clé refusée, domaine non vérifié ou quota atteint (détail enregistré) |
 | `Erreur trigger` | Problème technique côté base |
+
+> **Note sur le destinataire :** l'adresse d'envoi (`from`) et l'adresse de réception (`to`) sont deux choses différentes. Tant que le domaine n'est pas vérifié chez Resend, `to` doit être l'adresse du compte Resend (`globalsolution877@gmail.com`). Une fois `globalsolutions.one` vérifié, `to` peut devenir `info@globalsolutions.one`.
 
 L'adresse de réception se change directement dans cet onglet (réglage `notify_email`).
 

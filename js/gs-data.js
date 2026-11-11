@@ -167,7 +167,19 @@
     getRealisations, getActualites,
     applyGlobalUI,
     applyContent,
-    clearCache() { Object.keys(mem).forEach((k) => delete mem[k]); try { sessionStorage.clear(); } catch (e) {} }
+    clearCache() {
+      Object.keys(mem).forEach((k) => delete mem[k]);
+      // Ne supprimer que nos propres entrées « gs:* » : un sessionStorage.clear()
+      // effacerait aussi la session d'administration et le brouillon du formulaire.
+      try {
+        const keys = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const k = sessionStorage.key(i);
+          if (k && k.indexOf('gs:') === 0) keys.push(k);
+        }
+        keys.forEach((k) => sessionStorage.removeItem(k));
+      } catch (e) {}
+    }
   };
 
   // Démarrage : contenus éditables + réglages sur toutes les pages
