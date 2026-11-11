@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#04293B">
+<title>Administration — GLOBAL SOLUTIONS</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logos/favicon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css"><link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<!-- ================= CONNEXION ================= -->
+<section id="authView" class="auth-screen">
+  <div class="auth-card">
+    <a class="auth-logo" href="index.html"><img src="assets/logos/logo.jpg" alt="GLOBAL SOLUTIONS"></a>
+    <h1>Espace d'administration</h1>
+    <p class="auth-sub">Gestion des contenus du site GLOBAL SOLUTIONS</p>
+
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab active" data-tab="login" role="tab">Connexion</button>
+      <button class="auth-tab" data-tab="signup" role="tab">Première inscription</button>
+    </div>
+
+    <form id="loginForm" class="auth-form">
+      <label>E-mail<input type="email" id="loginEmail" autocomplete="username" required></label>
+      <label>Mot de passe<input type="password" id="loginPassword" autocomplete="current-password" required></label>
+      <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+      <p class="auth-msg" id="loginMsg"></p>
+    </form>
+
+    <form id="signupForm" class="auth-form" hidden>
+      <label>E-mail professionnel<input type="email" id="signupEmail" autocomplete="username" required></label>
+      <label>Mot de passe (8 caractères minimum)<input type="password" id="signupPassword" autocomplete="new-password" minlength="8" required></label>
+      <label>Code d'invitation<span class="hint">Communiqué par la direction</span><input type="text" id="signupCode" placeholder="XXXX-XXXX" required></label>
+      <button type="submit" class="btn btn-primary btn-block">Créer mon accès</button>
+      <p class="auth-msg" id="signupMsg"></p>
+    </form>
+
+    <a class="auth-back" href="index.html">← Retour au site</a>
+  </div>
+</section>
+
+<!-- ================= TABLEAU DE BORD ================= -->
+<div id="adminView" hidden>
+  <aside class="admin-side">
+    <div class="admin-brand"><img src="assets/logos/logo.jpg" alt="GLOBAL SOLUTIONS"><span>Administration</span></div>
+    <nav class="admin-nav">
+      <button data-view="dashboard" class="active"><span>▤</span> Tableau de bord</button>
+      <button data-view="messages"><span>✉</span> Demandes <em id="msgBadge" hidden>0</em></button>
+      <button data-view="realisations"><span>▦</span> Réalisations</button>
+      <button data-view="actualites"><span>✎</span> Actualités</button>
+      <button data-view="expertises"><span>◆</span> Expertises</button>
+      <button data-view="equipe"><span>☰</span> Équipe</button>
+      <button data-view="contenus"><span>⌘</span> Textes du site</button>
+      <button data-view="stats"><span>∑</span> Indicateurs</button>
+      <button data-view="notifications"><span>◈</span> Notifications</button>
+      <button data-view="reglages"><span>⚙</span> Réglages</button>
+    </nav>
+    <div class="admin-side-foot">
+      <a href="index.html" target="_blank">Voir le site ↗</a>
+      <button id="logoutBtn">Déconnexion</button>
+      <small id="adminEmail"></small>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-top">
+      <h1 id="viewTitle">Tableau de bord</h1>
+      <div class="admin-top-actions">
+        <span class="admin-env">Supabase connecté</span>
+      </div>
+    </header>
+
+    <div id="adminContent" class="admin-content"></div>
+    <div id="adminLoading" class="admin-loading" hidden>Chargement…</div>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/supabase-config.js"></script>
+<script src="js/gs-data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
