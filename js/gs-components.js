@@ -7,6 +7,28 @@
   'use strict';
   const GS = window.GS || {};
   const esc = GS.esc || ((s) => String(s == null ? '' : s));
+  const resolvePhoto = GS.resolvePhoto || ((url, fallback) => url || fallback || '');
+
+  // Les photos locales complètent les expertises dont l'image n'est pas encore
+  // renseignée dans Supabase. Une image personnalisée reste prioritaire.
+  const expertisePhotos = {
+    btp: { src: 'assets/images/rehabilitation-batiment.jpeg', alt: "Travaux de réhabilitation d'un bâtiment" },
+    hydraulique: { src: 'assets/images/equipement-hydraulique.jpeg', alt: 'Canalisations et équipements hydrauliques sur un site' },
+    aeps: { src: 'assets/images/point-eau.jpeg', alt: "Point d'eau avec robinets de distribution" },
+    energie: { src: 'assets/images/pompage-solaire.jpeg', alt: "Panneaux solaires sur un site d'accès à l'eau" },
+    minier: { src: 'assets/images/chantier-forage.jpeg', alt: 'Foreuse et matériel sur un chantier' },
+    metal: { src: 'assets/images/structure-metallique.jpeg', alt: 'Structure et couverture métalliques sur un chantier' },
+    assainissement: { src: 'assets/images/ouvrage-assainissement.jpeg', alt: "Ouvrage d'assainissement avec rampe d'accès" },
+    logistique: { src: 'assets/images/chantier-forage.jpeg', alt: 'Matériel et tiges de forage sur un chantier' },
+    equipements: { src: 'assets/images/equipement-hydraulique.jpeg', alt: 'Canalisations et équipements hydrauliques' }
+  };
+
+  function expertisePhoto(e) {
+    const fallback = expertisePhotos[e.slug];
+    const src = resolvePhoto(e.image_url, fallback && fallback.src);
+    if (!src) return null;
+    return { src, alt: fallback && src === fallback.src ? fallback.alt : e.titre };
+  }
 
   // --- Expertises (cartes d'accueil, liste des expertises) -------------------
   async function renderExpertises() {
@@ -17,10 +39,12 @@
     if (!items || !items.length) return; // le HTML statique reste affiché
 
     if (homeGrid) {
-      homeGrid.innerHTML = items.map((e, i) => `
+      homeGrid.innerHTML = items.map((e, i) => {
+        const photo = expertisePhoto(e);
+        return `
         <article class="card reveal visible">
           <div class="card-media">
-            ${e.image_url ? `<img src="${esc(e.image_url)}" alt="${esc(e.titre)}" loading="lazy">` : ''}
+            ${photo ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt)}" loading="lazy">` : ''}
             <span class="card-num">${String(i + 1).padStart(2, '0')}</span>
           </div>
           <div class="card-body">
@@ -28,14 +52,17 @@
             <p>${esc((e.description || '').slice(0, 165))}${(e.description || '').length > 165 ? '…' : ''}</p>
             <a class="card-link" href="expertises.html#${esc(e.slug)}">En savoir plus →</a>
           </div>
-        </article>`).join('');
+        </article>`;
+      }).join('');
     }
 
     if (fullList) {
-      fullList.innerHTML = items.map((e, i) => `
+      fullList.innerHTML = items.map((e, i) => {
+        const photo = expertisePhoto(e);
+        return `
         <div class="exp-row${i % 2 ? ' reverse' : ''}" id="${esc(e.slug)}">
           <div class="exp-media">
-            ${e.image_url ? `<img src="${esc(e.image_url)}" alt="${esc(e.titre)}" loading="lazy">` : ''}
+            ${photo ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt)}" loading="lazy">` : ''}
           </div>
           <div class="exp-body">
             <p class="eyebrow">Expertise ${String(i + 1).padStart(2, '0')}</p>
@@ -45,7 +72,8 @@
             ${e.secteurs ? `<p style="font-size:14px"><strong>Secteurs :</strong> ${esc(e.secteurs)}</p>` : ''}
             <a class="btn btn-dark" href="contact.html" style="margin-top:16px">Demander des renseignements</a>
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
       // Respect du lien d'ancre (ex: expertises.html#aeps)
       if (location.hash) {
         const target = document.getElementById(location.hash.slice(1));
@@ -91,7 +119,7 @@
     if (!items || !items.length) return;
     grid.innerHTML = items.slice(0, 3).map((p) => `
       <article class="g-item reveal visible">
-        ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.titre)}" loading="lazy">` : ''}
+        ${p.image_url ? `<img src="${esc(resolvePhoto(p.image_url))}" alt="${esc(p.titre)}" loading="lazy">` : ''}
         <div class="g-body">
           <h3>${esc(p.titre)}</h3>
           <div class="g-meta"><span>${esc(p.localisation || 'Niger')}</span>${p.annee ? `<span>${esc(p.annee)}</span>` : ''}</div>
@@ -107,7 +135,7 @@
     if (!items || !items.length) return;
     grid.innerHTML = items.slice(0, 3).map((a) => `
       <article class="news-card reveal visible">
-        ${a.image_url ? `<img src="${esc(a.image_url)}" alt="${esc(a.titre)}" loading="lazy">` : ''}
+        ${a.image_url ? `<img src="${esc(resolvePhoto(a.image_url))}" alt="${esc(a.titre)}" loading="lazy">` : ''}
         <div class="news-body">
           <p class="news-date">${esc(GS.dateFr ? GS.dateFr(a.date_publication) : (a.date_publication || ''))}</p>
           <h3>${esc(a.titre)}</h3>
@@ -124,7 +152,7 @@
     if (!items || !items.length) return;
     grid.innerHTML = items.map((a, i) => `
       <article class="news-card reveal visible">
-        ${a.image_url ? `<img src="${esc(a.image_url)}" alt="${esc(a.titre)}" loading="lazy">` : ''}
+        ${a.image_url ? `<img src="${esc(resolvePhoto(a.image_url))}" alt="${esc(a.titre)}" loading="lazy">` : ''}
         <div class="news-body">
           <p class="news-date">${esc(GS.dateFr ? GS.dateFr(a.date_publication) : (a.date_publication || ''))}</p>
           <h3>${esc(a.titre)}</h3>
@@ -159,7 +187,7 @@
     }
     const body = modal.querySelector('.article-modal__body');
     body.innerHTML = `
-      ${a.image_url ? `<img src="${esc(a.image_url)}" alt="${esc(a.titre)}">` : ''}
+      ${a.image_url ? `<img src="${esc(resolvePhoto(a.image_url))}" alt="${esc(a.titre)}">` : ''}
       <p class="news-date">${esc(GS.dateFr ? GS.dateFr(a.date_publication) : '')}</p>
       <h2 id="articleTitle">${esc(a.titre)}</h2>
       ${a.extrait ? `<p class="article-lead">${esc(a.extrait)}</p>` : ''}

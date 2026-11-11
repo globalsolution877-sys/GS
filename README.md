@@ -9,14 +9,14 @@ Site multipage statique (HTML5 / CSS3 / JavaScript ES6+) pour **GLOBAL SOLUTIONS
 ├── index.html            Accueil (hero, stats, expertises, pourquoi, approche, CTA)
 ├── a-propos.html         Histoire, identité, vision, mission, valeurs, organisation
 ├── expertises.html       9 expertises détaillées avec prestations et secteurs
-├── realisations.html     Galerie filtrable (Supabase + fallback local « À compléter »)
+├── realisations.html     Galerie filtrable (Supabase + photographies locales)
 ├── equipe.html           Direction (4 dirigeants, portraits à compléter)
 ├── actualites.html       Actualités (Supabase + emplacements éditoriaux)
 ├── contact.html          Formulaire de devis + carte Niamey + appels/WhatsApp
 ├── 404.html              Page 404 personnalisée
 ├── assets/
 │   ├── logos/logo.jpg    Logo officiel GLOBAL SOLUTIONS
-│   ├── images/           (images distantes Unsplash optimisées)
+│   ├── images/           Photographies fournies par GLOBAL SOLUTIONS
 │   └── icons/
 ├── css/
 │   ├── style.css         Design system (bleu nuit #10243A, orange #E99A35…)
@@ -33,6 +33,7 @@ Site multipage statique (HTML5 / CSS3 / JavaScript ES6+) pour **GLOBAL SOLUTIONS
 │   ├── gallery.js          Filtres réalisations + chargement Supabase
 │   └── contact.js          Validation + envoi Supabase (fallback mailto)
 ├── supabase/migrations.sql Schéma de référence
+├── tests/photos.test.js  Vérifications des photos et des replis
 ├── robots.txt
 ├── sitemap.xml
 └── README.md
@@ -50,6 +51,12 @@ npx serve .
 ```
 
 Puis ouvrir http://localhost:8000
+
+Les vérifications des photographies et du contenu dynamique peuvent être lancées sans dépendance supplémentaire avec Node.js :
+
+```bash
+node --test tests/photos.test.js
+```
 
 ## Déploiement
 
@@ -140,6 +147,8 @@ Il se change dans la table `app_config` (clé `invite_code`). Sans ce code, aucu
 2. `js/gs-components.js` remplace les sections dès que les données arrivent.
 3. **Si la base est vide ou injoignable, le HTML statique reste affiché** : aucune page blanche, aucun contenu inventé.
 4. Les textes utilisent l'attribut `data-content="page.cle"` ; les images `data-content-src="page.cle"`.
+
+Les photographies fournies sont stockées dans `assets/images/`. Elles illustrent les pages et les expertises sans photo configurée ; les images personnalisées enregistrées dans l'administration restent prioritaires. Dans la galerie, ces photos locales sont affichées tant qu'aucune réalisation n'est publiée dans Supabase ; les fiches publiées prennent ensuite leur place. Les anciens visuels de démonstration connus sont remplacés au rendu, sans modifier la base. Le bandeau d'accueil conserve son image actuelle.
 
 ### Ajouter une réalisation — avec ses photographies
 
@@ -246,7 +255,7 @@ Le bleu ciel du logo n'est jamais utilisé pour du texte fin sur blanc (contrast
 
 ## Contenus à compléter (volontairement non inventés)
 
-- **Réalisations** : photographies et fiches projets réelles (actuellement marquées « À compléter »).
+- **Réalisations** : compléter les fiches et les détails non fournis (lieu, date) des photographies locales via l'administration.
 - **Portraits dirigeants** : photographies officielles (initiales en attendant).
 - **Actualités** : articles définitifs via Supabase.
 - **Coordonnées GPS précises** : carte indicative centrée sur Niamey uniquement.
