@@ -303,3 +303,73 @@ alter table public.realisations add column if not exists ordre integer not null 
 
 create index if not exists realisations_ordre_idx
   on public.realisations (ordre, created_at desc);
+
+-- ============================================================================
+-- PORTRAITS DE L'ÉQUIPE — téléversement depuis l'administration
+-- ============================================================================
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('equipe', 'equipe', true, 10485760,
+        array['image/jpeg','image/png','image/webp','image/avif','image/gif'])
+on conflict (id) do update
+  set public = true,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists gs_public_read_equipe_images on storage.objects;
+create policy gs_public_read_equipe_images on storage.objects
+  for select to anon, authenticated
+  using (bucket_id = 'equipe');
+
+drop policy if exists gs_admin_insert_equipe_images on storage.objects;
+create policy gs_admin_insert_equipe_images on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'equipe' and public.is_admin());
+
+drop policy if exists gs_admin_update_equipe_images on storage.objects;
+create policy gs_admin_update_equipe_images on storage.objects
+  for update to authenticated
+  using (bucket_id = 'equipe' and public.is_admin())
+  with check (bucket_id = 'equipe' and public.is_admin());
+
+drop policy if exists gs_admin_delete_equipe_images on storage.objects;
+create policy gs_admin_delete_equipe_images on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'equipe' and public.is_admin());
+
+-- ============================================================================
+-- SÉCURITÉ — contrôle du code d'invitation à l'inscription
+-- ----------------------------------------------------------------------------
+-- La migration admin_auto_grant_gmail avait remplacé ce contrôle par une liste
+-- d'adresses : le code d'invitation était accepté puis ignoré, et n'importe
+-- qui pouvait créer un compte. Ce bloc rétablit la vérification.
+-- ============================================================================
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  code text;
+  fourni text;
+begin
+  select valeur into code from public.app_config where cle = 'invite_code';
+  fourni := coalesce(new.raw_user_meta_data->>'invite_code', '');
+
+  if coalesce(code, '') <> '' and fourni <> code then
+    raise exception 'Code d''invitation invalide';
+  end if;
+
+  insert into public.admins (user_id, email, role)
+  values (new.id, new.email, 'admin')
+  on conflict (user_id) do update set email = excluded.email;
+
+  return new;
+end; $$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();

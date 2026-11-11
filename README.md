@@ -98,20 +98,23 @@ Un liseré « Double-clic : administration » apparaît au survol du logo pour v
 | Champ | Valeur |
 |---|---|
 | URL | `https://votre-domaine/admin.html` |
-| E-mail | `direction@globalsolutions.one` |
-| Mot de passe | `GS-Niger-2026!` |
+| E-mail | le compte administrateur créé dans Supabase (Authentication → Users) |
+| Mot de passe | défini lors de la création ou de la réinitialisation du compte |
 
-> ⚠️ **Changez ce mot de passe après la première connexion** (Dashboard Supabase → Authentication → Users → *Reset password*), puis retirez le lien « Administration » du pied de page si vous le souhaitez.
+> ⚠️ **Aucun mot de passe n'est écrit dans ce dépôt.** Pour créer ou réinitialiser un accès : Dashboard Supabase → **Authentication** → **Users** → *Add user* (ou *Reset password*). Le compte doit également figurer dans la table `admins` (voir « Créer d'autres accès »).
 
 ### Créer d'autres accès
 
-Onglet « Première inscription » de la page admin. Le **code d'invitation** est obligatoire :
+Onglet « Première inscription » de la page admin. Le **code d'invitation** est obligatoire : il est vérifié côté base par le trigger `handle_new_user`, qui rejette toute création dont le code ne correspond pas.
 
-```
-GS-ADMIN-9K4T-2026
+Le code se lit et se change dans la table `app_config` (clé `invite_code`) :
+
+```sql
+select valeur from public.app_config where cle = 'invite_code';
+update public.app_config set valeur = 'NOUVEAU-CODE' where cle = 'invite_code';
 ```
 
-Il se change dans la table `app_config` (clé `invite_code`). Sans ce code, aucune inscription n'est possible : le trigger `handle_new_user` rejette la création.
+> 🔐 **Changez ce code** s'il a pu être communiqué à des tiers : il permet de créer un compte administrateur. Si la clé `invite_code` est supprimée ou vide, l'inscription est **libre** — à éviter en production.
 
 ### Ce que l'administration permet de gérer
 
@@ -122,7 +125,7 @@ Il se change dans la table `app_config` (clé `invite_code`). Sans ce code, aucu
 | **Réalisations** | Créer une fiche en **téléversant les photos depuis la galerie de l'appareil**, ajouter/retirer des photos, choisir la couverture, publier / dépublier / supprimer |
 | **Actualités** | Rédiger, publier, dépublier, supprimer (lecture en modale sur le site) |
 | **Expertises** | Ajouter, modifier, réordonner, masquer |
-| **Équipe** | Ajouter, modifier, masquer, ajouter une photo officielle |
+| **Équipe** | Ajouter un membre en **téléversant son portrait depuis la galerie**, remplacer ou retirer une photo, modifier la fiche (nom, fonction, bio, ordre), masquer |
 | **Textes du site** | Modifier tous les titres/paragraphes éditoriaux (héro, sections, CTA…) |
 | **Indicateurs** | Modifier les 4 chiffres de l'accueil |
 | **Réglages** | E-mail, téléphones, WhatsApp, adresse, réseaux sociaux |
@@ -162,6 +165,22 @@ Pour modifier une fiche existante : **Réalisations → « Photos / fiche »**. 
 | Suppression | Supprimer une fiche supprime aussi ses fichiers du bucket |
 
 Côté public, `/realisations.html` affiche les fiches publiées avec un badge du nombre de photos ; un clic ouvre une **présentation détaillée** (visiteuse d'images avec vignettes, flèches et navigation clavier, fiche technique et appel à l'action).
+
+### Ajouter ou remplacer le portrait d'un membre de l'équipe
+
+Via `/admin.html` → **Équipe** :
+
+1. **Nouveau membre** : renseignez nom, fonction, initiales, ordre et biographie, puis cliquez sur **« Choisir le portrait »** (galerie du téléphone ou de l'ordinateur, ou glisser-déposer).
+2. **Membre existant** : bouton **« Photos / fiche »**. La modale affiche le portrait actuel, permet de le **remplacer**, de le **retirer** (retour à l'avatar avec initiales) et de modifier toute la présentation.
+3. À l'enregistrement, l'ancien fichier est supprimé du stockage : aucun orphelin ne s'accumule.
+
+| Élément | Détail technique |
+|---|---|
+| Stockage | Bucket public `equipe` (10 Mo max, formats image) |
+| Compression | Même traitement que le catalogue (1 800 px, JPEG 0,82) |
+| Colonne | `equipe.photo_url` |
+| Affichage | Sur `/equipe.html` : portrait rond ; sans photo, avatar dégradé avec les initiales |
+| Sécurité | Écriture réservée aux administrateurs, lecture publique |
 
 ### Ajouter une actualité
 
