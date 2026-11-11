@@ -15,6 +15,7 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const resolvePhoto = (window.GS && window.GS.resolvePhoto) || ((url) => url);
 
   function toast(text, isError) {
     const t = $('#toast');
@@ -282,8 +283,6 @@
   }
 
   // ------------------------------ Vues ------------------------------------
-  const IMG_FALLBACK = 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=400&auto=format&fit=crop';
-
   const views = {
 
     // ---------------------------------------------------------- Dashboard
@@ -404,7 +403,7 @@
         <h2>Catalogue (${rows.length} fiche${rows.length > 1 ? 's' : ''} · ${nbPhotos} photo${nbPhotos > 1 ? 's' : ''} en galerie)</h2>
         ${rows.length ? `<table class="a-table"><thead><tr><th></th><th>Titre</th><th>Catégorie</th><th>Année</th><th>Photos</th><th>Statut</th><th></th></tr></thead><tbody>
         ${rows.map((r) => `<tr>
-          <td><img src="${esc(r.image_url || IMG_FALLBACK)}" alt=""></td>
+          <td>${r.image_url ? `<img src="${esc(resolvePhoto(r.image_url))}" alt="">` : '—'}</td>
           <td><strong>${esc(r.titre)}</strong><br><small style="color:var(--grey-mid)">${esc(r.localisation || '')}</small></td>
           <td>${esc(r.categorie || '')}</td><td>${esc(r.annee || '')}</td>
           <td>${r.galerie && r.galerie.length ? r.galerie.length + ' 📷' : '—'}</td>
@@ -414,7 +413,7 @@
             <button class="a-btn" data-toggle="realisations:${r.id}:${r.statut === 'publie' ? 'brouillon' : 'publie'}">${r.statut === 'publie' ? 'Dépublier' : 'Publier'}</button>
             <button class="a-btn danger" data-del-real="${r.id}">Supprimer</button>
           </div></td></tr>`).join('')}
-        </tbody></table>` : `<div class="a-empty"><strong>Aucune réalisation pour le moment</strong>Le site public affiche les emplacements « À compléter » jusqu'à votre première publication.</div>`}
+        </tbody></table>` : `<div class="a-empty"><strong>Aucune réalisation pour le moment</strong>Le site public affiche les photographies locales jusqu'à votre première publication.</div>`}
       </div>`;
     },
 

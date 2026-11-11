@@ -1,19 +1,19 @@
 // GLOBAL SOLUTIONS — gallery.js
 // Catalogue public des réalisations : données Supabase (statut = publié),
-// repli local « à compléter » si la base est vide ou injoignable.
-// Chaque fiche ouvre une présentation détaillée : galerie de photos, fiche
-// technique, localisation et description.
+// ou photographies fournies par GLOBAL SOLUTIONS si la base est vide ou
+// injoignable. Les détails non fournis (lieu, date) ne sont pas inventés.
 
 const FALLBACK_PROJECTS = [
-  { titre: "Emplacement à compléter — Bâtiment", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niamey, Niger", categorie: "batiments", annee: "À compléter", image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Hydraulique", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "hydraulique", annee: "À compléter", image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Forage", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "forages", annee: "À compléter", image: "https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Adduction d'eau potable", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "aeps", annee: "À compléter", image: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Aménagement", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "amenagements", annee: "À compléter", image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Énergie solaire", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "solaire", annee: "À compléter", image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Génie civil", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "genie-civil", annee: "À compléter", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Construction métallique", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "metal", annee: "À compléter", image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=1200&auto=format&fit=crop", placeholder: true },
-  { titre: "Emplacement à compléter — Projet à documenter", description: "Photographie et fiche projet à fournir par GLOBAL SOLUTIONS. Cet emplacement est volontairement identifié comme contenu à compléter.", localisation: "Niger", categorie: "batiments", annee: "À compléter", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop", placeholder: true }
+  { titre: 'Chantier de forage', description: 'Foreuse et matériel sur un chantier de forage.', categorie: 'forages', image: 'assets/images/chantier-forage.jpeg' },
+  { titre: "Réhabilitation d'un bâtiment", description: "Travaux de réparation d'un mur.", categorie: 'batiments', image: 'assets/images/rehabilitation-batiment.jpeg' },
+  { titre: 'Structure métallique', description: 'Structure et couverture métalliques sur un chantier.', categorie: 'metal', image: 'assets/images/structure-metallique.jpeg' },
+  { titre: "Ouvrage d'assainissement", description: "Ouvrage d'assainissement avec rampe d'accès.", categorie: 'genie-civil', image: 'assets/images/ouvrage-assainissement.jpeg' },
+  { titre: "Aménagement d'un site", description: "Vue d'ensemble d'un site aménagé et de ses ouvrages.", categorie: 'amenagements', image: 'assets/images/amenagement-site.jpeg' },
+  { titre: 'Réservoir surélevé', description: 'Réservoir sur une structure métallique surélevée.', categorie: 'hydraulique', image: 'assets/images/reservoir-sureleve.jpeg' },
+  { titre: 'Installation solaire', description: 'Panneaux solaires installés sur un site.', categorie: 'solaire', image: 'assets/images/installation-solaire.jpeg' },
+  { titre: 'Équipement hydraulique', description: 'Ensemble de canalisations et de vannes.', categorie: 'hydraulique', image: 'assets/images/equipement-hydraulique.jpeg' },
+  { titre: "Point d'eau", description: "Robinetterie et point de distribution d'eau.", categorie: 'aeps', image: 'assets/images/point-eau.jpeg' },
+  { titre: 'Solaire et accès à l’eau', description: "Panneaux solaires sur un site d'accès à l'eau.", categorie: 'solaire', image: 'assets/images/pompage-solaire.jpeg' }
 ];
 const CATEGORY_LABELS = { batiments: "Bâtiments", hydraulique: "Hydraulique", forages: "Forages", aeps: "Adduction d'eau potable", amenagements: "Aménagements", solaire: "Énergie solaire", "genie-civil": "Génie civil", metal: "Construction métallique" };
 
@@ -23,8 +23,10 @@ function esc(v) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 function photosOf(p) {
-  const list = Array.isArray(p.galerie) && p.galerie.length ? p.galerie.slice() : (p.image ? [p.image] : []);
-  return list.filter(Boolean);
+  const gallery = Array.isArray(p.galerie) ? p.galerie.filter(Boolean) : [];
+  const list = gallery.length ? gallery : (p.image ? [p.image] : []);
+  const resolve = window.GS && window.GS.resolvePhoto;
+  return resolve ? list.map((url) => resolve(url)) : list;
 }
 function href(url) { return esc(url).replace(/'/g, '%27'); }
 
@@ -34,7 +36,7 @@ function renderGallery(items, filter) {
   if (!grid) return;
   const list = filter === 'tous' ? items : items.filter((i) => i.categorie === filter);
   if (!list.length) {
-    grid.innerHTML = '<div class="empty-state"><h3>Aucun projet dans cette catégorie</h3><p>Les fiches projets seront publiées ici dès réception des photographies et informations validées.</p></div>';
+    grid.innerHTML = '<div class="empty-state"><h3>Aucun projet dans cette catégorie</h3><p>Aucune réalisation ne correspond à ce filtre pour le moment.</p></div>';
     return;
   }
   grid.innerHTML = list.map((p, i) => {
@@ -45,17 +47,16 @@ function renderGallery(items, filter) {
     <article class="g-item" data-project="${i}" tabindex="0" role="button"
              aria-label="Voir la présentation de ${esc(p.titre)}">
       <div class="g-thumb">
-        <img src="${href(cover)}" alt="${esc(p.titre)}" loading="lazy">
+        ${cover ? `<img src="${href(cover)}" alt="${esc(p.titre)}" loading="lazy">` : '<div class="g-no-photo">Photographie à venir</div>'}
         ${total > 1 ? `<span class="g-count">📷 ${total}</span>` : ''}
-        ${p.placeholder ? '<span class="tag-todo">À compléter</span>' : ''}
       </div>
       <div class="g-body">
         <h3>${esc(p.titre)}</h3>
         <p class="g-desc">${esc(p.description)}</p>
         <div class="g-meta">
           <span>${esc(CATEGORY_LABELS[p.categorie] || p.categorie || '—')}</span>
-          <span>${esc(p.localisation || 'Niger')}</span>
-          <span>${esc(p.annee || '—')}</span>
+          ${p.localisation ? `<span>${esc(p.localisation)}</span>` : ''}
+          ${p.annee ? `<span>${esc(p.annee)}</span>` : ''}
         </div>
       </div>
     </article>`;
@@ -83,7 +84,7 @@ function openProject(p) {
     <div class="article-modal__panel project-panel">
       <button class="project-close" aria-label="Fermer">×</button>
       <div class="project-viewer">
-        <img class="project-photo" src="${href(photos[0] || '')}" alt="${esc(p.titre)}">
+        ${photos.length ? `<img class="project-photo" src="${href(photos[0])}" alt="${esc(p.titre)}">` : '<div class="project-no-photo">Photographie à venir</div>'}
         ${photos.length > 1 ? `<button class="project-nav prev" aria-label="Photo précédente">‹</button>
         <button class="project-nav next" aria-label="Photo suivante">›</button>
         <div class="project-index">1 / ${photos.length}</div>
@@ -145,6 +146,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
   let projects = FALLBACK_PROJECTS;
+  let currentFilter = 'tous';
+  // Les photos sont visibles immédiatement, même si le réseau est lent.
+  renderGallery(projects, currentFilter);
+  document.querySelectorAll('.filter-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderGallery(projects, currentFilter);
+    });
+  });
+
   try {
     const cfg = window.GS_SUPABASE;
     if (cfg && cfg.url) {
@@ -158,29 +171,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           projects = data.map((d) => ({
             titre: d.titre,
             description: d.description || '',
-            localisation: d.localisation || 'Niger',
+            localisation: d.localisation || '',
             categorie: d.categorie || 'batiments',
-            annee: d.annee || '—',
-            image: d.image_url || (Array.isArray(d.galerie) && d.galerie[0]) || FALLBACK_PROJECTS[0].image,
-            galerie: Array.isArray(d.galerie) ? d.galerie : [],
-            placeholder: false
+            annee: d.annee || '',
+            image: d.image_url || (Array.isArray(d.galerie) && d.galerie[0]) || '',
+            galerie: Array.isArray(d.galerie) ? d.galerie : []
           }));
+          renderGallery(projects, currentFilter);
         }
       }
     }
-  } catch (e) { /* repli local */ }
-
-  renderGallery(projects, 'tous');
-
-  // La note d'avertissement ne concerne que les emplacements provisoires
-  const note = document.querySelector('.gallery-note');
-  if (note && projects.some((p) => !p.placeholder)) note.hidden = true;
-
-  document.querySelectorAll('.filter-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderGallery(projects, btn.dataset.filter);
-    });
-  });
+  } catch (e) { /* les photographies locales restent affichées */ }
 });
