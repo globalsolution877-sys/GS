@@ -119,7 +119,7 @@ Il se change dans la table `app_config` (clé `invite_code`). Sans ce code, aucu
 |---|---|
 | **Tableau de bord** | Nombre de demandes neuves, contenus publiés, accès rapides |
 | **Demandes** | Lire les messages du formulaire, marquer traité, répondre par e-mail, supprimer |
-| **Réalisations** | Créer / publier / dépublier / supprimer (photo + fiche) |
+| **Réalisations** | Créer une fiche en **téléversant les photos depuis la galerie de l'appareil**, ajouter/retirer des photos, choisir la couverture, publier / dépublier / supprimer |
 | **Actualités** | Rédiger, publier, dépublier, supprimer (lecture en modale sur le site) |
 | **Expertises** | Ajouter, modifier, réordonner, masquer |
 | **Équipe** | Ajouter, modifier, masquer, ajouter une photo officielle |
@@ -141,10 +141,27 @@ Il se change dans la table `app_config` (clé `invite_code`). Sans ce code, aucu
 3. **Si la base est vide ou injoignable, le HTML statique reste affiché** : aucune page blanche, aucun contenu inventé.
 4. Les textes utilisent l'attribut `data-content="page.cle"` ; les images `data-content-src="page.cle"`.
 
-### Ajouter une réalisation
+### Ajouter une réalisation — avec ses photographies
 
-Via `/admin.html` → Réalisations, ou dans Supabase → Table Editor → `realisations` :
-`titre`, `description`, `localisation`, `categorie` (`batiments`, `hydraulique`, `forages`, `aeps`, `amenagements`, `solaire`, `genie-civil`, `metal`), `annee`, `image_url`, `statut='publie'`.
+Via `/admin.html` → **Réalisations**. Le formulaire permet de **choisir les photos directement depuis la galerie du téléphone ou de l'ordinateur** (aucun hébergeur externe n'est nécessaire) :
+
+1. Renseignez le titre, la catégorie (`batiments`, `hydraulique`, `forages`, `aeps`, `amenagements`, `solaire`, `genie-civil`, `metal`), la localisation, l'année et la description.
+2. Cliquez sur **« Choisir les photos »** (ou glissez-déposez les fichiers). Plusieurs photos sont acceptées d'un coup, JPG / PNG / WEBP / AVIF, 10 Mo maximum par image.
+3. Les vignettes s'affichent ; la **première devient la couverture** du catalogue. Utilisez × pour retirer une photo avant l'envoi.
+4. **Enregistrer** : les images sont compressées puis téléversées, la fiche est créée et publiée.
+
+Pour modifier une fiche existante : **Réalisations → « Photos / fiche »**. Vous pouvez y ajouter des photos, en retirer, mettre n'importe quelle photo en couverture (★), et modifier la présentation (titre, catégorie, année, statut, description).
+
+| Élément | Détail technique |
+|---|---|
+| Stockage | Bucket public `realisations` (Supabase Storage) |
+| Compression | Dans le navigateur, plus grand côté ramené à 1 800 px, JPEG qualité 0,82 — une photo de téléphone de 8 Mo descend souvent sous 400 Ko |
+| Envoi | 2 photos en parallèle, avec compteur de progression sur le bouton |
+| Colonnes | `image_url` (couverture), `galerie` (tableau d'URL, toutes les photos), `ordre` |
+| Sécurité | Écriture réservée aux administrateurs (`public.is_admin()`), lecture publique |
+| Suppression | Supprimer une fiche supprime aussi ses fichiers du bucket |
+
+Côté public, `/realisations.html` affiche les fiches publiées avec un badge du nombre de photos ; un clic ouvre une **présentation détaillée** (visiteuse d'images avec vignettes, flèches et navigation clavier, fiche technique et appel à l'action).
 
 ### Ajouter une actualité
 

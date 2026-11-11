@@ -256,3 +256,50 @@ drop trigger if exists on_contact_message_created on public.contact_messages;
 create trigger on_contact_message_created
   after insert on public.contact_messages
   for each row execute function public.notify_new_contact();
+
+-- ============================================================================
+-- CATALOGUE DES RÉALISATIONS — téléversement d'images depuis l'administration
+-- ----------------------------------------------------------------------------
+-- Les photographies sont envoyées vers Supabase Storage depuis le navigateur
+-- (/admin.html), compressées en JPEG côté client. L'écriture est réservée aux
+-- administrateurs (public.is_admin), la lecture est publique.
+-- ============================================================================
+
+-- 1) Bucket public dédié aux photographies de réalisations
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('realisations', 'realisations', true, 10485760,
+        array['image/jpeg','image/png','image/webp','image/avif','image/gif'])
+on conflict (id) do update
+  set public = true,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+-- 2) Lecture publique des images
+drop policy if exists gs_public_read_realisations_images on storage.objects;
+create policy gs_public_read_realisations_images on storage.objects
+  for select to anon, authenticated
+  using (bucket_id = 'realisations');
+
+-- 3) Écriture réservée aux administrateurs
+drop policy if exists gs_admin_insert_realisations_images on storage.objects;
+create policy gs_admin_insert_realisations_images on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'realisations' and public.is_admin());
+
+drop policy if exists gs_admin_update_realisations_images on storage.objects;
+create policy gs_admin_update_realisations_images on storage.objects
+  for update to authenticated
+  using (bucket_id = 'realisations' and public.is_admin())
+  with check (bucket_id = 'realisations' and public.is_admin());
+
+drop policy if exists gs_admin_delete_realisations_images on storage.objects;
+create policy gs_admin_delete_realisations_images on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'realisations' and public.is_admin());
+
+-- 4) Galerie multi-photos et ordre d'affichage du catalogue
+alter table public.realisations add column if not exists galerie text[] not null default '{}'::text[];
+alter table public.realisations add column if not exists ordre integer not null default 0;
+
+create index if not exists realisations_ordre_idx
+  on public.realisations (ordre, created_at desc);

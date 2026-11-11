@@ -224,6 +224,45 @@ h1,h2,h3,h4{font-family:var(--font-title);color:var(--navy);line-height:1.15;let
 .footer-logo img{height:44px;mix-blend-mode:multiply}
 .footer-bottom{border-top:1px solid rgba(255,255,255,.14);padding:18px 0;font-size:13.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 /* Lightbox */
+/* ---------- Catalogue des réalisations : fiche projet ---------- */
+.g-thumb{position:relative;overflow:hidden}
+.g-thumb img{transition:transform .5s ease}
+.g-item:hover .g-thumb img{transform:scale(1.06)}
+.g-count{position:absolute;left:12px;bottom:12px;background:rgba(4,41,59,.78);color:#fff;font-family:var(--font-title);font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;backdrop-filter:blur(3px)}
+.g-thumb .tag-todo{position:absolute;right:12px;top:12px;font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:999px}
+.g-desc{color:var(--grey-mid);font-size:14px;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+.project-modal{align-items:center}
+.project-panel{position:relative;width:min(1080px,96vw);max-height:92vh;display:grid;grid-template-columns:1.15fr .85fr;overflow:hidden;padding:0;background:#fff;border-radius:20px}
+.project-close{position:absolute;top:14px;right:14px;z-index:5;width:38px;height:38px;border-radius:50%;border:none;background:rgba(4,41,59,.55);color:#fff;font-size:22px;line-height:1;cursor:pointer;transition:.2s}
+.project-close:hover{background:var(--sky);color:var(--navy)}
+.project-viewer{position:relative;background:#04293B;display:flex;flex-direction:column;min-height:340px}
+.project-photo{width:100%;flex:1;min-height:0;object-fit:cover;display:block}
+.project-nav{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.88);color:var(--navy);font-size:26px;line-height:1;cursor:pointer;transition:.2s;display:grid;place-items:center}
+.project-nav:hover{background:#fff}
+.project-nav.prev{left:12px}
+.project-nav.next{right:12px}
+.project-index{position:absolute;top:14px;left:14px;background:rgba(4,41,59,.72);color:#fff;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px}
+.project-strip{display:flex;gap:8px;padding:10px;overflow-x:auto;background:#04293B}
+.strip-thumb{flex:0 0 auto;width:60px;height:46px;border-radius:8px;overflow:hidden;border:2px solid transparent;padding:0;background:none;cursor:pointer;opacity:.6;transition:.2s}
+.strip-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.strip-thumb:hover{opacity:1}
+.strip-thumb.active{border-color:var(--sky);opacity:1}
+.project-body{padding:28px 28px 32px;overflow:auto;max-height:92vh}
+.project-body h2{font-size:27px;margin-top:6px;line-height:1.2}
+.project-facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0 4px}
+.project-facts div{background:var(--sky-mist);border:1px solid var(--sky-soft);border-radius:12px;padding:11px 13px}
+.project-facts span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--grey-mid);font-weight:700}
+.project-facts strong{display:block;font-family:var(--font-title);font-size:15px;color:var(--navy);margin-top:3px}
+.project-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+@media (max-width:880px){
+  .project-panel{grid-template-columns:1fr;max-height:94vh;overflow:auto}
+  .project-viewer{min-height:260px;max-height:46vh}
+  .project-body{max-height:none;padding:22px 20px 28px}
+  .project-body h2{font-size:22px}
+  .project-facts{grid-template-columns:1fr}
+}
+
 .lightbox{position:fixed;inset:0;background:rgba(4,41,59,.94);z-index:200;display:none;align-items:center;justify-content:center;padding:24px}
 .lightbox.open{display:flex}
 .lightbox img{max-width:min(980px,94vw);max-height:82vh;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.45)}

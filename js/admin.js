@@ -109,6 +109,171 @@
     return txt ? JSON.parse(txt) : null;
   }
 
+  // ---------------------- Téléversement des images -------------------------
+  // Les photographies sont compressees dans le navigateur (canvas) avant envoi :
+  // une photo de telephone de 8 Mo devient generalement 200-400 Ko, ce qui rend
+  // l'envoi fiable en 3G depuis Niamey et allege le site public.
+  const BUCKET = 'realisations';
+  const MAX_INPUT = 25 * 1024 * 1024;   // taille maximale du fichier d'origine
+  const MAX_SIDE = 1800;                // plus grand cote apres compression
+  const JPEG_QUALITY = 0.82;
+
+  // Lot de photos selectionne mais pas encore televerse
+  let picked = [];
+
+  function humanSize(n) {
+    if (!n) return '0 Ko';
+    return n >= 1048576 ? (n / 1048576).toFixed(1) + ' Mo' : Math.round(n / 1024) + ' Ko';
+  }
+
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      // Navigateur ancien (canvas.toBlob absent) : on envoie le fichier tel quel
+      if (typeof document.createElement('canvas').toBlob !== 'function') {
+        return resolve(file);
+      }
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width: w, height: h } = img;
+        const ratio = Math.min(1, MAX_SIDE / Math.max(w, h));
+        w = Math.round(w * ratio); h = Math.round(h * ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(
+          (blob) => blob ? resolve(blob) : reject(new Error('Compression impossible')),
+          'image/jpeg', JPEG_QUALITY
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image illisible')); };
+      img.src = url;
+    });
+  }
+
+  function storagePath(file) {
+    const d = new Date();
+    const stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') +
+      String(d.getDate()).padStart(2, '0') + '-' + Date.now() + '-' +
+      Math.random().toString(36).slice(2, 7);
+    const base = (file.name || 'photo').replace(/\.[^.]+$/, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      .toLowerCase().slice(0, 48) || 'photo';
+    return stamp + '-' + base + '.jpg';
+  }
+
+  async function uploadOne(file) {
+    if (!admin) throw new Error('Session expirée');
+    if (!/^image\//.test(file.type)) throw new Error('« ' + file.name + ' » n\u2019est pas une image.');
+    if (file.size > MAX_INPUT) throw new Error('« ' + file.name + ' » dépasse 25 Mo.');
+    const blob = await compressImage(file);
+    const path = storagePath(file);
+    const res = await fetch(cfg.url + '/storage/v1/object/' + BUCKET + '/' + encodeURIComponent(path), {
+      method: 'POST',
+      headers: {
+        apikey: cfg.anonKey,
+        Authorization: 'Bearer ' + admin.access_token,
+        'Content-Type': 'image/jpeg',
+        'x-upsert': 'false',
+        'cache-control': '31536000'
+      },
+      body: blob
+    });
+    if (!res.ok) {
+      let msg = 'Échec du téléversement (' + res.status + ')';
+      try {
+        const j = await res.json();
+        if (j.message) msg = j.message;
+        if (/row-level security|Unauthorized|JWT/i.test(msg)) {
+          msg = 'Accès refusé par la base : votre compte doit figurer dans la table admins.';
+        }
+      } catch (e) {}
+      throw new Error(msg);
+    }
+    return cfg.url + '/storage/v1/object/public/' + BUCKET + '/' + path;
+  }
+
+  // Envoi d'au moins deux photos en parallele (plus rapide, moins d'erreurs reseau)
+  async function uploadAll(files, onProgress) {
+    const list = Array.from(files);
+    const urls = new Array(list.length);
+    let done = 0;
+    const worker = async (i) => {
+      urls[i] = await uploadOne(list[i]);
+      done += 1;
+      if (onProgress) onProgress(done, list.length);
+    };
+    let cursor = 0;
+    const runners = Array.from({ length: Math.min(2, list.length) }, async () => {
+      while (cursor < list.length) {
+        const i = cursor++;
+        await worker(i);
+      }
+    });
+    await Promise.all(runners);
+    return urls;
+  }
+
+  // Apercus + selecteur de fichiers de la fiche « nouvelle realisation »
+  function bindUploader() {
+    const input = $('#fileRealisation');
+    const drop = $('#dropRealisation');
+    const box = $('#previewsRealisation') || document.createElement('div');
+    const info = $('#uploadRealisationInfo');
+    if (!input || !drop) return;
+
+    function syncInfo() {
+      if (!info) return;
+      const total = picked.reduce((n, p) => n + p.file.size, 0);
+      info.textContent = picked.length
+        ? picked.length + ' photo' + (picked.length > 1 ? 's' : '') +
+          ' sélectionnée' + (picked.length > 1 ? 's' : '') + ' · ' + humanSize(total) + ' avant compression'
+        : '';
+    }
+
+    function paint() {
+      box.innerHTML = picked.map((p, i) => `
+        <figure class="gs-preview">
+          <img src="${p.preview}" alt="">
+          <figcaption>${i === 0 ? '<span class="gs-cover">Couverture</span>' : ''}
+            <button type="button" data-drop-photo="${i}" title="Retirer">×</button></figcaption>
+        </figure>`).join('');
+      box.querySelectorAll('[data-drop-photo]').forEach((b) => b.addEventListener('click', () => {
+        const i = Number(b.dataset.dropPhoto);
+        URL.revokeObjectURL(picked[i].preview);
+        picked.splice(i, 1);
+        paint(); syncInfo();
+      }));
+      syncInfo();
+    }
+
+    function add(files) {
+      Array.from(files).forEach((file) => {
+        if (!/^image\//.test(file.type)) { toast('« ' + file.name + ' » n\u2019est pas une image', true); return; }
+        if (file.size > MAX_INPUT) { toast('« ' + file.name + ' » dépasse 25 Mo', true); return; }
+        picked.push({ file, preview: URL.createObjectURL(file) });
+      });
+      paint();
+    }
+
+    if (input.dataset.bound) return;
+    input.dataset.bound = '1';
+    input.addEventListener('change', () => { add(input.files); input.value = ''; });
+
+    ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => {
+      e.preventDefault(); drop.classList.add('over');
+    }));
+    ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => {
+      e.preventDefault(); drop.classList.remove('over');
+    }));
+    drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files) add(e.dataTransfer.files); });
+
+    window.__gsResetPicked = () => { picked.forEach((p) => URL.revokeObjectURL(p.preview)); picked = []; paint(); };
+  }
+
   function logout() {
     clearSession();
     $('#adminView').hidden = true;
@@ -196,12 +361,15 @@
     },
 
     // ------------------------------------------------------- Réalisations
+    // Catalogue : chaque projet accepte une photographie de couverture et une
+    // galerie de photos, televersees depuis la galerie de l'appareil.
     realisations: async () => {
-      const rows = await api('realisations?select=*&order=created_at.desc');
+      const rows = await api('realisations?select=*&order=ordre.asc,created_at.desc');
+      const nbPhotos = rows.reduce((n, r) => n + (r.galerie ? r.galerie.length : 0), 0);
       return `
       <div class="a-card">
-        <h2>Nouvelle réalisation</h2>
-        <p class="a-sub">Publiez un projet réel avec sa photographie. N'inventez pas de références.</p>
+        <h2>Ajouter une réalisation</h2>
+        <p class="a-sub">Choisissez les photographies depuis la galerie de votre téléphone ou de votre ordinateur. La première sélectionnée devient la couverture du catalogue.</p>
         <form class="a-form" id="formRealisation">
           <label>Titre du projet<input name="titre" required placeholder="Ex. Construction du centre de santé de…"></label>
           <label>Catégorie
@@ -215,26 +383,38 @@
           <label>Localisation<input name="localisation" placeholder="Ville / région"></label>
           <label>Année<input name="annee" type="number" min="2000" max="2100" placeholder="2024"></label>
           <label class="full">Description<textarea name="description" placeholder="Nature des travaux, maître d'ouvrage, résultats…"></textarea></label>
-          <label class="full">URL de la photographie<input name="image_url" type="url" placeholder="https://…"><small>Hébergez l'image sur Supabase Storage, Cloudinary ou tout autre hébergeur et collez le lien.</small></label>
+          <div class="full">
+            <label class="gs-upload" id="dropRealisation">
+              <input type="file" id="fileRealisation" accept="image/*" multiple hidden>
+              <span class="gs-upload__icon" aria-hidden="true">🖼️</span>
+              <strong>Choisir les photos</strong>
+              <small>Depuis la galerie ou l'appareil photo · JPG, PNG, WEBP, AVIF · 10 Mo max par image · plusieurs photos possibles</small>
+            </label>
+            <small id="uploadRealisationInfo" class="gs-upload__info"></small>
+            <div class="gs-previews" id="previewsRealisation"></div>
+          </div>
+          <label class="full">Ou coller un lien d'image (facultatif)<input name="image_url" type="url" placeholder="https://…"><small>Utile pour réutiliser une photo déjà hébergée ailleurs. Le téléversement reste la méthode recommandée.</small></label>
           <label>Statut
             <select name="statut"><option value="publie">Publié (visible)</option><option value="brouillon">Brouillon (masqué)</option></select>
           </label>
-          <div class="a-form-foot"><button type="submit" class="a-btn primary">Enregistrer</button></div>
+          <div class="a-form-foot"><button type="submit" class="a-btn primary">Enregistrer la réalisation</button></div>
         </form>
       </div>
       <div class="a-card">
-        <h2>Réalisations existantes (${rows.length})</h2>
-        ${rows.length ? `<table class="a-table"><thead><tr><th></th><th>Titre</th><th>Catégorie</th><th>Année</th><th>Statut</th><th></th></tr></thead><tbody>
+        <h2>Catalogue (${rows.length} fiche${rows.length > 1 ? 's' : ''} · ${nbPhotos} photo${nbPhotos > 1 ? 's' : ''} en galerie)</h2>
+        ${rows.length ? `<table class="a-table"><thead><tr><th></th><th>Titre</th><th>Catégorie</th><th>Année</th><th>Photos</th><th>Statut</th><th></th></tr></thead><tbody>
         ${rows.map((r) => `<tr>
           <td><img src="${esc(r.image_url || IMG_FALLBACK)}" alt=""></td>
           <td><strong>${esc(r.titre)}</strong><br><small style="color:var(--grey-mid)">${esc(r.localisation || '')}</small></td>
           <td>${esc(r.categorie || '')}</td><td>${esc(r.annee || '')}</td>
+          <td>${r.galerie && r.galerie.length ? r.galerie.length + ' 📷' : '—'}</td>
           <td><span class="a-badge ${r.statut === 'publie' ? 'pub' : ''}">${esc(r.statut || 'brouillon')}</span></td>
           <td><div class="a-actions">
+            <button class="a-btn" data-edit-real="${r.id}">Photos / fiche</button>
             <button class="a-btn" data-toggle="realisations:${r.id}:${r.statut === 'publie' ? 'brouillon' : 'publie'}">${r.statut === 'publie' ? 'Dépublier' : 'Publier'}</button>
-            <button class="a-btn danger" data-del="realisations:${r.id}">Supprimer</button>
+            <button class="a-btn danger" data-del-real="${r.id}">Supprimer</button>
           </div></td></tr>`).join('')}
-        </tbody></table>` : `<div class="a-empty"><strong>Aucune réalisation publiée</strong>Le site affiche pour l'instant les emplacements « À compléter ».</div>`}
+        </tbody></table>` : `<div class="a-empty"><strong>Aucune réalisation pour le moment</strong>Le site public affiche les emplacements « À compléter » jusqu'à votre première publication.</div>`}
       </div>`;
     },
 
@@ -601,6 +781,9 @@
       finally { saveNotify.disabled = false; }
     });
 
+    // ---------- Televersement (fiche nouvelle realisation)
+    bindUploader();
+
     // ---------- Formulaires de création
     const forms = {
       formRealisation: { table: 'realisations', map: (f) => ({ ...f, annee: f.annee ? Number(f.annee) : null }) },
@@ -614,23 +797,230 @@
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
+        const label = btn.textContent;
         btn.disabled = true;
         const data = Object.fromEntries(new FormData(form).entries());
         // nettoyage des champs vides
         Object.keys(data).forEach((k) => { if (data[k] === '') data[k] = k === 'annee' ? null : data[k]; });
+        const isRealisation = conf.table === 'realisations';
         try {
+          if (isRealisation) {
+            const photos = picked.slice();
+            let url = [];
+            if (photos.length) {
+              btn.textContent = 'Envoi des photos… 0/' + photos.length;
+              const files = photos.map((p) => p.file);
+              url = await uploadAll(files, (done, total) => {
+                btn.textContent = 'Envoi des photos… ' + done + '/' + total;
+              });
+              data.image_url = url[0];
+              data.galerie = url;
+            }
+            if (!data.image_url) {
+              toast('Ajoutez au moins une photographie : elle est obligatoire pour le catalogue.', true);
+              btn.disabled = false; btn.textContent = label;
+              return;
+            }
+            if (!data.galerie) data.galerie = data.image_url ? [data.image_url] : [];
+          }
           await api(conf.table, { method: 'POST', body: conf.map(data), prefer: 'return=minimal' });
-          toast('Enregistré avec succès');
+          toast(isRealisation ? 'Réalisation publiée avec ses photos' : 'Enregistré avec succès');
+          if (isRealisation && window.__gsResetPicked) window.__gsResetPicked();
           show(view);
         } catch (err) {
           toast(err.message, true);
-          btn.disabled = false;
+          btn.disabled = false; btn.textContent = label;
         }
       });
     });
 
     // ---------- Édition en ligne (expertises / équipe)
     $$('#adminContent [data-edit]').forEach((b) => b.addEventListener('click', () => openEdit(b.dataset.edit)));
+
+    // ---------- Fiches realisations : photos, galerie et presentation
+    $$('#adminContent [data-edit-real]').forEach((b) =>
+      b.addEventListener('click', () => openRealisation(b.dataset.editReal)));
+
+    $$('#adminContent [data-del-real]').forEach((b) => b.addEventListener('click', async () => {
+      if (!confirm('Supprimer cette réalisation et toutes ses photos ?')) return;
+      try {
+        await removeRealisation(b.dataset.delReal);
+        toast('Réalisation supprimée');
+        show('realisations');
+      } catch (e) { toast(e.message, true); }
+    }));
+  }
+
+  // ------------------- Edition d'une realisation ---------------------------
+  async function removeRealisation(id) {
+    const rows = await api('realisations?select=galerie,image_url&id=eq.' + id);
+    const row = rows[0] || {};
+    const files = []
+      .concat(row.galerie || [], row.image_url ? [row.image_url] : [])
+      .map(storageKeyFromUrl).filter(Boolean);
+    if (files.length) {
+      try {
+        await fetch(cfg.url + '/storage/v1/object/' + BUCKET, {
+          method: 'DELETE',
+          headers: {
+            apikey: cfg.anonKey,
+            Authorization: 'Bearer ' + admin.access_token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ prefixes: files })
+        });
+      } catch (e) { /* les fichiers orphelins ne bloquent pas la suppression */ }
+    }
+    await api('realisations?id=eq.' + id, { method: 'DELETE' });
+  }
+
+  // Retrouve le chemin du fichier dans le bucket a partir de son URL publique
+  function storageKeyFromUrl(url) {
+    if (!url) return null;
+    const marker = '/object/public/' + BUCKET + '/';
+    const i = url.indexOf(marker);
+    return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length));
+  }
+
+  async function openRealisation(id) {
+    const rows = await api('realisations?select=*&id=eq.' + id);
+    const row = rows[0];
+    if (!row) return;
+    let galerie = Array.isArray(row.galerie) ? row.galerie.slice() : (row.image_url ? [row.image_url] : []);
+    let nouveau = [];
+
+    const modal = document.createElement('div');
+    modal.className = 'article-modal open';
+    modal.style.display = 'flex';
+    modal.innerHTML = `<div class="article-modal__panel" style="max-width:760px;background:#fff;padding:26px;border-radius:18px;max-height:90vh;overflow:auto">
+      <h2 style="margin-bottom:6px">Photos et présentation</h2>
+      <p class="a-sub" style="margin-bottom:16px">Ajoutez, retirez ou réordonnez les photographies de ce projet. La première sert de couverture dans le catalogue public.</p>
+
+      <div class="gs-gallery-edit" id="editGallery"></div>
+      <label class="gs-upload" id="addToGallery" style="margin-top:14px">
+        <input type="file" id="addGalleryFiles" accept="image/*" multiple hidden>
+        <span class="gs-upload__icon" aria-hidden="true">＋</span>
+        <strong>Ajouter des photos</strong>
+        <small>Depuis la galerie de l'appareil · JPG, PNG, WEBP, AVIF</small>
+      </label>
+
+      <div class="a-form" style="margin-top:20px;grid-template-columns:1fr 1fr">
+        <label class="full">Titre<input data-real="titre" value="${esc(row.titre || '')}"></label>
+        <label>Catégorie
+          <select data-real="categorie">
+            ${[['batiments','Bâtiments'],['hydraulique','Hydraulique'],['forages','Forages'],['aeps',"Adduction d'eau potable"],['amenagements','Aménagements'],['solaire','Énergie solaire'],['genie-civil','Génie civil'],['metal','Construction métallique']]
+              .map(([v, l]) => `<option value="${v}"${row.categorie === v ? ' selected' : ''}>${l}</option>`).join('')}
+          </select>
+        </label>
+        <label>Localisation<input data-real="localisation" value="${esc(row.localisation || '')}"></label>
+        <label>Année<input data-real="annee" type="number" min="2000" max="2100" value="${esc(row.annee || '')}"></label>
+        <label>Statut
+          <select data-real="statut">
+            <option value="publie"${row.statut === 'publie' ? ' selected' : ''}>Publié (visible)</option>
+            <option value="brouillon"${row.statut !== 'publie' ? ' selected' : ''}>Brouillon (masqué)</option>
+          </select>
+        </label>
+        <label class="full">Description<textarea data-real="description">${esc(row.description || '')}</textarea></label>
+      </div>
+
+      <div class="a-form-foot" style="margin-top:20px">
+        <button class="a-btn" data-cancel>Fermer</button>
+        <button class="a-btn primary" data-save>Enregistrer</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+
+    const galleryBox = modal.querySelector('#editGallery');
+
+    function paintGallery() {
+      if (!galerie.length && !nouveau.length) {
+        galleryBox.innerHTML = '<p class="a-sub">Aucune photo. Ajoutez-en au moins une.</p>';
+        return;
+      }
+      galleryBox.innerHTML =
+        galerie.map((u, i) => `
+          <figure class="gs-photo">
+            <img src="${esc(u)}" alt="">
+            <figcaption>
+              ${i === 0 ? '<span class="gs-cover">Couverture</span>' : `<button type="button" data-make-cover="${i}" title="Mettre en couverture">★</button>`}
+              <button type="button" data-remove="${i}" title="Retirer">×</button>
+            </figcaption>
+          </figure>`).join('') +
+        nouveau.map((p, i) => `
+          <figure class="gs-photo pending">
+            <img src="${p.preview}" alt="">
+            <figcaption><span class="gs-cover">À envoyer</span><button type="button" data-drop-new="${i}" title="Annuler">×</button></figcaption>
+          </figure>`).join('');
+
+      galleryBox.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => {
+        galerie.splice(Number(b.dataset.remove), 1); paintGallery();
+      }));
+      galleryBox.querySelectorAll('[data-make-cover]').forEach((b) => b.addEventListener('click', () => {
+        const i = Number(b.dataset.makeCover);
+        galerie.unshift(galerie.splice(i, 1)[0]); paintGallery();
+      }));
+      galleryBox.querySelectorAll('[data-drop-new]').forEach((b) => b.addEventListener('click', () => {
+        const i = Number(b.dataset.dropNew);
+        URL.revokeObjectURL(nouveau[i].preview);
+        nouveau.splice(i, 1); paintGallery();
+      }));
+    }
+    paintGallery();
+
+    const addInput = modal.querySelector('#addGalleryFiles');
+    const addZone = modal.querySelector('#addToGallery');
+    addInput.addEventListener('change', () => {
+      Array.from(addInput.files).forEach((file) => {
+        if (!/^image\//.test(file.type)) { toast('Fichier ignoré : ' + file.name, true); return; }
+        if (file.size > MAX_INPUT) { toast('« ' + file.name + ' » dépasse 25 Mo', true); return; }
+        nouveau.push({ file, preview: URL.createObjectURL(file) });
+      });
+      addInput.value = '';
+      paintGallery();
+    });
+    ['dragenter', 'dragover'].forEach((ev) => addZone.addEventListener(ev, (e) => { e.preventDefault(); addZone.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach((ev) => addZone.addEventListener(ev, (e) => { e.preventDefault(); addZone.classList.remove('over'); }));
+    addZone.addEventListener('drop', (e) => {
+      if (!e.dataTransfer || !e.dataTransfer.files) return;
+      Array.from(e.dataTransfer.files).forEach((file) => {
+        if (/^image\//.test(file.type) && file.size <= MAX_INPUT) {
+          nouveau.push({ file, preview: URL.createObjectURL(file) });
+        }
+      });
+      paintGallery();
+    });
+
+    modal.querySelector('[data-cancel]').onclick = () => modal.remove();
+    modal.querySelector('[data-save]').onclick = async () => {
+      const save = modal.querySelector('[data-save]');
+      const label = save.textContent;
+      save.disabled = true;
+      try {
+        if (nouveau.length) {
+          save.textContent = 'Envoi des photos… 0/' + nouveau.length;
+          const urls = await uploadAll(nouveau.map((p) => p.file), (done, total) => {
+            save.textContent = 'Envoi des photos… ' + done + '/' + total;
+          });
+          galerie = galerie.concat(urls);
+          nouveau.forEach((p) => URL.revokeObjectURL(p.preview));
+          nouveau = [];
+          paintGallery();
+        }
+        const body = { galerie };
+        modal.querySelectorAll('[data-real]').forEach((f) => {
+          const k = f.dataset.real;
+          body[k] = k === 'annee' ? (f.value ? Number(f.value) : null) : f.value;
+        });
+        body.image_url = galerie[0] || null;
+        await api('realisations?id=eq.' + id, { method: 'PATCH', body, prefer: 'return=minimal' });
+        modal.remove();
+        toast('Fiche et photos enregistrées');
+        show('realisations');
+      } catch (e) {
+        toast(e.message, true);
+        save.disabled = false; save.textContent = label;
+      }
+    };
   }
 
   async function openEdit(compound) {
