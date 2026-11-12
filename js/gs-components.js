@@ -27,7 +27,24 @@
     const fallback = expertisePhotos[e.slug];
     const src = resolvePhoto(e.image_url, fallback && fallback.src);
     if (!src) return null;
-    return { src, alt: fallback && src === fallback.src ? fallback.alt : e.titre };
+    return {
+      src,
+      alt: fallback && src === fallback.src ? fallback.alt : e.titre,
+      // Photo locale de repli si le lien externe s'avère illisible (404, page HTML…)
+      fallback: fallback && src !== fallback.src ? fallback.src : ''
+    };
+  }
+
+  // Un lien image invalide ne doit jamais laisser un visuel cassé : on retombe
+  // automatiquement sur la photo locale de l'expertise.
+  function bindImgFallbacks(root) {
+    root.querySelectorAll('img[data-fallback]').forEach((img) => {
+      img.addEventListener('error', () => {
+        const fb = img.getAttribute('data-fallback');
+        img.removeAttribute('data-fallback');
+        if (fb) img.src = fb;
+      });
+    });
   }
 
   // --- Expertises (cartes d'accueil, liste des expertises) -------------------
@@ -44,7 +61,7 @@
         return `
         <article class="card reveal visible">
           <div class="card-media">
-            ${photo ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt)}" loading="lazy">` : ''}
+            ${photo ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt)}" loading="lazy"${photo.fallback ? ` data-fallback="${esc(photo.fallback)}"` : ''}>` : ''}
             <span class="card-num">${String(i + 1).padStart(2, '0')}</span>
           </div>
           <div class="card-body">
@@ -54,6 +71,7 @@
           </div>
         </article>`;
       }).join('');
+      bindImgFallbacks(homeGrid);
     }
 
     if (fullList) {
@@ -62,7 +80,7 @@
         return `
         <div class="exp-row${i % 2 ? ' reverse' : ''}" id="${esc(e.slug)}">
           <div class="exp-media">
-            ${photo ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt)}" loading="lazy">` : ''}
+            ${photo ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt)}" loading="lazy"${photo.fallback ? ` data-fallback="${esc(photo.fallback)}"` : ''}>` : ''}
           </div>
           <div class="exp-body">
             <p class="eyebrow">Expertise ${String(i + 1).padStart(2, '0')}</p>
@@ -74,6 +92,7 @@
           </div>
         </div>`;
       }).join('');
+      bindImgFallbacks(fullList);
       // Respect du lien d'ancre (ex: expertises.html#aeps)
       if (location.hash) {
         const target = document.getElementById(location.hash.slice(1));
