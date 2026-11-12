@@ -269,5 +269,5 @@ Le bleu ciel du logo n'est jamais utilisé pour du texte fin sur blanc (contrast
 ## Contact entreprise
 
 GLOBAL SOLUTIONS SARL — Niamey, Niger (Quartier Koira Kano), BP 12052
-info@globalsolutions.one · +227 99 54 83 49 · +227 98 33 61 91
++227 98 33 61 91 · +227 99 54 83 49 · info@globalsolutions.one
 RCCM : RCCM-NI-NIA-2017-B-003 · NIF : 40242/R
