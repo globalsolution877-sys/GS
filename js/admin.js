@@ -197,6 +197,22 @@
     return cfg.url + '/storage/v1/object/public/' + BUCKET + '/' + path;
   }
 
+  // Vérifie qu'un lien pointe bien vers une image et non vers la page d'un
+  // hébergeur (type ibb.co) : la page renvoie du HTML et ne s'affiche jamais.
+  function assertDirectImage(url) {
+    return new Promise((resolve, reject) => {
+      if (!url) return resolve();
+      const probe = new Image();
+      const timer = setTimeout(() => reject(new Error('Lien image introuvable (délai dépassé).')), 10000);
+      probe.onload = () => { clearTimeout(timer); resolve(); };
+      probe.onerror = () => {
+        clearTimeout(timer);
+        reject(new Error('Ce lien n\u2019est pas une image directe : collez l\u2019adresse du fichier (.jpg, .png…) plutôt que la page de l\u2019image, ou téléversez le fichier depuis ce formulaire.'));
+      };
+      probe.src = url;
+    });
+  }
+
   // Envoi d'au moins deux photos en parallele (plus rapide, moins d'erreurs reseau)
   async function uploadAll(files, onProgress) {
     const list = Array.from(files);
@@ -459,7 +475,8 @@
           <label class="full">Description<textarea name="description"></textarea></label>
           <label class="full">Mots-clés<input name="tags" placeholder="Séparés par des virgules"></label>
           <label class="full">Secteurs<input name="secteurs" placeholder="Ex. collectivités, agriculture"></label>
-          <label class="full">Image (URL)<input name="image_url" type="url"></label>
+          <label class="full">Image : choisir un fichier<input type="file" id="expertiseFile" accept="image/*"><small>Envoyée automatiquement — puis cliquez sur Enregistrer.</small></label>
+          <label class="full">Image (URL directe)<input name="image_url" type="url" placeholder="https://…/photo.jpg"></label>
           <label>Ordre d'affichage<input name="ordre" type="number" value="${rows.length + 1}"></label>
           <div class="a-form-foot"><button class="a-btn primary">Enregistrer</button></div>
         </form>
@@ -783,6 +800,20 @@
     // ---------- Televersement (fiche nouvelle realisation)
     bindUploader();
 
+    // ---------- Téléversement d'image d'expertise (remplit le champ URL)
+    const expertiseFile = $('#expertiseFile');
+    if (expertiseFile) expertiseFile.addEventListener('change', async () => {
+      const file = expertiseFile.files && expertiseFile.files[0];
+      if (!file) return;
+      try {
+        const url = await uploadOne(file);
+        const field = $('#formExpertise [name="image_url"]');
+        if (field) field.value = url;
+        expertiseFile.value = '';
+        toast('Image téléversée — cliquez sur Enregistrer');
+      } catch (e) { toast(e.message, true); expertiseFile.value = ''; }
+    });
+
     // ---------- Formulaires de création
     const forms = {
       formRealisation: { table: 'realisations', map: (f) => ({ ...f, annee: f.annee ? Number(f.annee) : null }) },
@@ -803,6 +834,8 @@
         Object.keys(data).forEach((k) => { if (data[k] === '') data[k] = k === 'annee' ? null : data[k]; });
         const isRealisation = conf.table === 'realisations';
         try {
+          if (data.image_url) await assertDirectImage(data.image_url);
+          if (data.photo_url) await assertDirectImage(data.photo_url);
           if (isRealisation) {
             const photos = picked.slice();
             let url = [];
@@ -1044,12 +1077,25 @@
           ? `<textarea data-edit-field="${k}">${esc(row[k] || '')}</textarea>`
           : `<input data-edit-field="${k}" value="${esc(k === 'tags' && Array.isArray(row[k]) ? row[k].join(', ') : (row[k] || ''))}">`}
         </label>`).join('')}
+        ${('image_url' in row || 'photo_url' in row) ? `<label class="full">ou téléverser une image<input type="file" id="editFile" accept="image/*"></label>` : ''}
       </div>
       <div class="a-form-foot" style="margin-top:18px">
         <button class="a-btn" data-cancel>Annuler</button>
         <button class="a-btn primary" data-save>Enregistrer</button>
       </div></div>`;
     document.body.appendChild(modal);
+    const editFile = modal.querySelector('#editFile');
+    if (editFile) editFile.addEventListener('change', async () => {
+      const file = editFile.files && editFile.files[0];
+      if (!file) return;
+      try {
+        const url = await uploadOne(file);
+        const target = modal.querySelector('[data-edit-field="image_url"]') || modal.querySelector('[data-edit-field="photo_url"]');
+        if (target) target.value = url;
+        editFile.value = '';
+        toast('Image téléversée — cliquez sur Enregistrer');
+      } catch (e) { toast(e.message, true); editFile.value = ''; }
+    });
     modal.querySelector('[data-cancel]').onclick = () => modal.remove();
     modal.querySelector('[data-save]').onclick = async () => {
       const body = {};
@@ -1061,6 +1107,8 @@
         body[k] = v;
       });
       try {
+        if (body.image_url && body.image_url !== (row.image_url || '')) await assertDirectImage(body.image_url);
+        if (body.photo_url && body.photo_url !== (row.photo_url || '')) await assertDirectImage(body.photo_url);
         await api(`${table}?id=eq.${id}`, { method: 'PATCH', body, prefer: 'return=minimal' });
         modal.remove(); toast('Modifications enregistrées');
         show(table === 'expertises' ? 'expertises' : 'equipe');

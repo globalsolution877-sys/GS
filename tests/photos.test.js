@@ -82,8 +82,8 @@ test('les expertises Supabase sans photo utilisent les photos locales et respect
     { slug: 'aeps', titre: 'Eau', image_url: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80' },
     { slug: 'energie', titre: 'Solaire', image_url: 'https://example.com/photo-personnelle.jpg' }
   ];
-  const home = { innerHTML: '' };
-  const details = { innerHTML: '' };
+  const home = { innerHTML: '', querySelectorAll: () => [] };
+  const details = { innerHTML: '', querySelectorAll: () => [] };
   let boot;
   const document = {
     readyState: 'loading',
