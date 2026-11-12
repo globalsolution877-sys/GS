@@ -30,6 +30,7 @@ Site multipage statique (HTML5 / CSS3 / JavaScript ES6+) pour **GLOBAL SOLUTIONS
 │   ├── admin.js            Authentification et CRUD de l'administration
 │   ├── main.js             Reveal, parallaxe, lightbox, back-to-top
 │   ├── navigation.js       Menu mobile + lien actif
+│   ├── gs-i18n.js          Traduction FR / EN (bouton de langue + dictionnaire intégré)
 │   ├── gallery.js          Filtres réalisations + chargement Supabase
 │   └── contact.js          Validation + envoi Supabase (fallback mailto)
 ├── supabase/migrations.sql Schéma de référence
@@ -38,6 +39,10 @@ Site multipage statique (HTML5 / CSS3 / JavaScript ES6+) pour **GLOBAL SOLUTIONS
 ├── sitemap.xml
 └── README.md
 ```
+
+## Traduction du site (FR / EN)
+
+Un bouton de langue **EN / FR** est injecté automatiquement dans l'en-tête et le menu mobile de toutes les pages publiques (`js/gs-i18n.js`). Au clic, l'ensemble des textes, titres de pages, métadonnées et attributs (`alt`, `placeholder`, `aria-label`…) bascule en anglais, y compris les contenus chargés dynamiquement depuis Supabase. Le choix est mémorisé dans `localStorage` (clé `gs_lang`) et l'attribut `lang` de la page est mis à jour. Aucune dépendance externe.
 
 ## Installation & lancement local
 
