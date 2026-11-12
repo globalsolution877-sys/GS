@@ -318,3 +318,7 @@ h1,h2,h3,h4{font-family:var(--font-title);color:var(--navy);line-height:1.15;let
 }
 .logo:hover::after{opacity:1;transform:none}
 @media (max-width:860px){.logo::after{display:none}}
+/* --- Bouton de langue (traduction FR / EN) --- */
+.lang-switch{display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--navy);font-family:var(--font-title);font-weight:700;font-size:13px;letter-spacing:.08em;cursor:pointer;transition:.25s}
+.lang-switch:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.lang-switch--mobile{width:100%;margin-top:12px;height:46px}
