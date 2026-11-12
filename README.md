@@ -34,6 +34,7 @@ Site multipage statique (HTML5 / CSS3 / JavaScript ES6+) pour **GLOBAL SOLUTIONS
 │   ├── gallery.js          Filtres réalisations + chargement Supabase
 │   └── contact.js          Validation + envoi Supabase (fallback mailto)
 ├── supabase/migrations.sql Schéma de référence
+├── docs/GUIDE-UTILISATION.html  Guide client : site public + espace admin
 ├── tests/photos.test.js  Vérifications des photos et des replis
 ├── robots.txt
 ├── sitemap.xml

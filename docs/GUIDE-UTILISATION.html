@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Guide d'utilisation — Site GLOBAL SOLUTIONS (site public & espace admin)</title>
+<style>
+  :root{
+    --navy:#10243A; --navy-deep:#04293B; --sky:#82C6F9; --sky-dark:#2A93D8;
+    --orange:#E99A35; --ink:#22303C; --grey:#5B6B78; --line:#DCE4EB;
+    --bg:#F6F9FC; --ok:#1E7F4F; --warn:#B3541E; --danger:#8C1D18;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    background:var(--bg);line-height:1.65;font-size:15px}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px}
+  /* --- couverture --- */
+  .cover{background:linear-gradient(135deg,var(--navy-deep) 0%,var(--navy) 55%,#1B3B5C 100%);
+    color:#fff;padding:56px 22px 48px;border-bottom:6px solid var(--orange)}
+  .cover .inner{max-width:920px;margin:0 auto}
+  .cover .brand{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+  .cover .brand img{width:58px;height:58px;border-radius:12px;background:#fff;object-fit:contain;padding:4px}
+  .cover .brand span{font-size:13px;letter-spacing:.22em;text-transform:uppercase;opacity:.85}
+  .cover h1{font-size:34px;line-height:1.2;margin:0 0 12px}
+  .cover h1 em{font-style:normal;color:var(--sky)}
+  .cover p.sub{font-size:17px;opacity:.92;margin:0 0 26px;max-width:640px}
+  .cover .meta{display:flex;flex-wrap:wrap;gap:10px}
+  .cover .meta span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;padding:6px 14px;font-size:13px}
+  /* --- sommaire --- */
+  .toc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px 30px;margin:34px 0}
+  .toc h2{margin:0 0 14px;font-size:19px;color:var(--navy)}
+  .toc ol{margin:0;padding-left:20px;columns:2;column-gap:36px}
+  .toc li{margin:7px 0;break-inside:avoid}
+  .toc a{color:var(--navy);text-decoration:none;font-weight:600}
+  .toc a:hover{color:var(--sky-dark);text-decoration:underline}
+  /* --- sections --- */
+  section.card{background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:30px 34px;margin:0 0 26px}
+  h2.sec{font-size:22px;color:var(--navy);margin:0 0 6px;display:flex;align-items:center;gap:12px}
+  h2.sec .num{background:var(--navy);color:#fff;border-radius:10px;min-width:34px;height:34px;
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+  h3{font-size:16.5px;color:var(--navy-deep);margin:26px 0 8px}
+  h4{font-size:14.5px;color:var(--sky-dark);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+  p{margin:8px 0}
+  ul,ol{padding-left:22px}
+  li{margin:5px 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  th{background:var(--navy);color:#fff;text-align:left;padding:9px 12px;font-weight:600}
+  td{border:1px solid var(--line);padding:9px 12px;vertical-align:top}
+  tr:nth-child(even) td{background:#F3F7FB}
+  code{background:#EEF3F8;border:1px solid var(--line);border-radius:6px;padding:1px 6px;
+    font-size:13px;font-family:Consolas,Menlo,monospace}
+  .btn-sample{display:inline-block;background:var(--sky);color:var(--navy);font-weight:700;
+    border-radius:10px;padding:8px 16px;font-size:13px}
+  .callout{border-left:5px solid var(--sky-dark);background:#EAF4FC;border-radius:0 12px 12px 0;
+    padding:14px 18px;margin:16px 0}
+  .callout.tip{border-color:var(--ok);background:#EAF7F0}
+  .callout.warn{border-color:var(--orange);background:#FDF4E7}
+  .callout.danger{border-color:var(--danger);background:#FBEFEE}
+  .callout strong{display:block;margin-bottom:4px;color:var(--navy-deep)}
+  .steps{counter-reset:step;list-style:none;padding-left:0}
+  .steps li{counter-increment:step;position:relative;padding-left:44px;margin:12px 0}
+  .steps li::before{content:counter(step);position:absolute;left:0;top:1px;width:30px;height:30px;
+    background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:14px}
+  .kbd{background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;
+    padding:1px 7px;font-size:12.5px;font-family:inherit}
+  .pill{display:inline-block;background:#EAF4FC;color:var(--sky-dark);border-radius:999px;
+    padding:2px 10px;font-size:12px;font-weight:700;margin-right:4px}
+  .pill.ok{background:#EAF7F0;color:var(--ok)}
+  .pill.warn{background:#FDF4E7;color:var(--warn)}
+  footer.doc{background:var(--navy-deep);color:#fff;padding:30px 22px;margin-top:10px}
+  footer.doc .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;
+    justify-content:space-between;gap:14px;font-size:13.5px;opacity:.92}
+  /* --- impression --- */
+  @media print{
+    body{background:#fff;font-size:12px}
+    .cover{padding:30px 0}
+    section.card{break-inside:avoid;border:none;border-top:2px solid var(--navy);border-radius:0;padding:16px 0}
+    .toc{break-after:page}
+    h2.sec{break-after:avoid}
+    .callout{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="inner">
+    <div class="brand">
+      <img src="../assets/logos/logo.jpg" alt="Logo GLOBAL SOLUTIONS">
+      <span>GLOBAL SOLUTIONS SARL</span>
+    </div>
+    <h1>Guide d'utilisation<br><em>Site internet &amp; espace d'administration</em></h1>
+    <p class="sub">Ce guide explique, pas à pas, comment consulter le site public, gérer vos contenus
+    (réalisations, actualités, équipe, textes…) et administrer les demandes de contact depuis
+    l'espace réservé aux administrateurs.</p>
+    <div class="meta">
+      <span>Version 1.0</span>
+      <span>12 novembre 2026</span>
+      <span>Destinataire : l'administrateur du site</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h2>Sommaire</h2>
+  <ol>
+    <li><a href="#s1">Le site public en un coup d'œil</a></li>
+    <li><a href="#s2">Accéder à l'espace d'administration</a></li>
+    <li><a href="#s3">Le tableau de bord</a></li>
+    <li><a href="#s4">Les demandes de contact</a></li>
+    <li><a href="#s5">Les réalisations (catalogue de projets)</a></li>
+    <li><a href="#s6">Les actualités</a></li>
+    <li><a href="#s7">Les expertises</a></li>
+    <li><a href="#s8">L'équipe</a></li>
+    <li><a href="#s9">Les textes du site</a></li>
+    <li><a href="#s10">Les indicateurs d'accueil</a></li>
+    <li><a href="#s11">Les notifications par e-mail</a></li>
+    <li><a href="#s12">Les réglages (coordonnées &amp; sécurité)</a></li>
+    <li><a href="#s13">Comprendre les statuts (Publié / Brouillon)</a></li>
+    <li><a href="#s14">Tâches fréquentes, pas à pas</a></li>
+    <li><a href="#s15">FAQ &amp; dépannage</a></li>
+    <li><a href="#s16">Bonnes pratiques &amp; sécurité</a></li>
+    <li><a href="#s17">Où sont stockées les données (Supabase)</a></li>
+    <li><a href="#s18">Contacts &amp; assistance</a></li>
+  </ol>
+</nav>
+
+<section class="card" id="s1">
+  <h2 class="sec"><span class="num">1</span>Le site public en un coup d'œil</h2>
+  <p>Le site <strong>globalsolutions.one</strong> est le site institutionnel de GLOBAL SOLUTIONS.
+  Il est consultable par tous vos visiteurs et se compose des pages suivantes :</p>
+  <table>
+    <tr><th>Page</th><th>Contenu</th></tr>
+    <tr><td><strong>Accueil</strong></td><td>Bannière de présentation, indicateurs clés, domaines d'expertise, pourquoi nous choisir, approche technique, bouton de contact.</td></tr>
+    <tr><td><strong>À propos</strong></td><td>Histoire de l'entreprise, identité, vision, mission, organisation et valeurs.</td></tr>
+    <tr><td><strong>Nos expertises</strong></td><td>Le détail des 9 domaines d'intervention avec prestations, secteurs et bouton « Demander des renseignements ».</td></tr>
+    <tr><td><strong>Nos réalisations</strong></td><td>Catalogue filtrable des projets (Bâtiments, Forages, Aménagements…), avec fiches détaillées et photographies.</td></tr>
+    <tr><td><strong>Notre équipe</strong></td><td>La direction et les collaborateurs, avec notices biographiques.</td></tr>
+    <tr><td><strong>Actualités</strong></td><td>Vos publications : communiqués, avancées de chantier, annonces.</td></tr>
+    <tr><td><strong>Contact</strong></td><td>Formulaire de demande, coordonnées, WhatsApp, appels directs et carte de localisation.</td></tr>
+  </table>
+
+  <h3>Le bouton de traduction FR / EN</h3>
+  <p>Un bouton <span class="btn-sample">EN</span> / <span class="btn-sample">FR</span> est présent dans
+  l'en-tête de chaque page (et dans le menu mobile). Un clic traduit tout le site en anglais
+  (textes, menus, formulaires, titres de pages) ; un nouveau clic revient au français.
+  La préférence du visiteur est mémorisée automatiquement.</p>
+
+  <h3>Contacter l'entreprise depuis le site</h3>
+  <ul>
+    <li><strong>Formulaire de contact</strong> (page Contact) : chaque demande arrive dans l'espace admin,
+    rubrique <em>Demandes</em>, et déclenche une alerte e-mail à l'adresse de réception configurée.</li>
+    <li><strong>WhatsApp</strong> et <strong>appels directs</strong> : boutons cliquables (téléphone mobile).</li>
+  </ul>
+</section>
+
+<section class="card" id="s2">
+  <h2 class="sec"><span class="num">2</span>Accéder à l'espace d'administration</h2>
+
+  <h3>2.1 L'adresse</h3>
+  <p>L'espace admin se trouve à l'adresse suivante (à ajouter aux favoris du navigateur) :</p>
+  <p><code>https://globalsolutions.one/admin.html</code></p>
+  <div class="callout tip"><strong>À savoir</strong>
+  Cette page n'est pas référencée par Google et n'est pas liée depuis le site public :
+  seules les personnes qui connaissent l'adresse y accèdent.</div>
+
+  <h3>2.2 La première inscription (une seule fois)</h3>
+  <ol class="steps">
+    <li>Ouvrez l'onglet <strong>« Première inscription »</strong> sur la page de connexion.</li>
+    <li>Saisissez votre <strong>e-mail professionnel</strong>, un <strong>mot de passe (8 caractères minimum)</strong>
+    et le <strong>code d'invitation</strong> (format <code>XXXX-XXXX</code>) communiqué par la direction.</li>
+    <li>Cliquez sur <strong>« Créer mon accès »</strong>. Votre compte administrateur est créé immédiatement.</li>
+  </ol>
+  <div class="callout warn"><strong>Important</strong>
+  Le code d'invitation est à usage unique par compte et doit rester secret : ne le communiquez
+  qu'aux personnes autorisées à administrer le site.</div>
+
+  <h3>2.3 Les connexions suivantes</h3>
+  <ol class="steps">
+    <li>Onglet <strong>« Connexion »</strong> : entrez votre e-mail et votre mot de passe.</li>
+    <li>Cliquez sur <strong>« Se connecter »</strong> : le tableau de bord s'affiche.</li>
+    <li>Pour terminer, cliquez sur <strong>« Déconnexion »</strong> en bas du menu de gauche.</li>
+  </ol>
+  <div class="callout"><strong>Durée de la session</strong>
+  La session reste active tant que le navigateur est ouvert. À la fermeture du navigateur,
+  une nouvelle connexion est requise. Sur un ordinateur partagé, déconnectez-vous toujours
+  en quittant.</div>
+</section>
+
+<section class="card" id="s3">
+  <h2 class="sec"><span class="num">3</span>Le tableau de bord</h2>
+  <p>Après la connexion, le tableau de bord donne une vue d'ensemble en un clin d'œil :</p>
+  <ul>
+    <li><strong>Indicateurs</strong> : nombre de réalisations publiées, d'actualités publiées,
+    de nouvelles demandes de contact.</li>
+    <li><strong>Notifications</strong> : état des derniers envois d'e-mails d'alerte.</li>
+    <li><strong>Dernières demandes</strong> : les 5 messages les plus récents avec leur statut.</li>
+    <li>Le menu de gauche donne accès à toutes les rubriques ; le bouton
+    <strong>« Voir le site ↗ »</strong> ouvre le site public dans un nouvel onglet pour vérifier
+    le rendu de vos modifications.</li>
+  </ul>
+</section>
+
+<section class="card" id="s4">
+  <h2 class="sec"><span class="num">4</span>Les demandes de contact</h2>
+  <p>Chaque envoi du formulaire de contact du site arrive ici. Pour chaque demande, vous voyez :
+  le nom, l'entreprise, l'e-mail, le téléphone, le domaine du projet, l'objet et le message complet.</p>
+  <h3>Traiter une demande</h3>
+  <ol class="steps">
+    <li>Lisez le message (badge <span class="pill warn">nouveau</span> = non traité).</li>
+    <li>Répondez à la personne avec le bouton <strong>« Répondre par e-mail »</strong>
+    (votre logiciel de messagerie s'ouvre avec l'adresse pré-remplie).</li>
+    <li>Après réponse, cliquez sur <strong>« Marquer traité »</strong> : la demande passe au
+    statut <span class="pill ok">traité</span>.</li>
+    <li>Le bouton <strong>« Remettre en nouveau »</strong> permet de rouvrir une demande si besoin ;
+    le bouton <strong>« Supprimer »</strong> définitivement efface un message.</li>
+  </ol>
+  <div class="callout tip"><strong>Astuce</strong>
+  Le menu de gauche affiche un compteur à côté de « Demandes » tant qu'il reste des messages
+  non traités. Consultez-le régulièrement : chaque demande est un prospect !</div>
+</section>
+
+<section class="card" id="s5">
+  <h2 class="sec"><span class="num">5</span>Les réalisations (catalogue de projets)</h2>
+  <p>C'est la galerie de vos chantiers, visible sur la page « Nos réalisations » du site.
+  Une réalisation = une fiche projet avec photos.</p>
+
+  <h3>5.1 Ajouter une réalisation</h3>
+  <ol class="steps">
+    <li>Rubrique <strong>Réalisations</strong> → formulaire <strong>« Ajouter une réalisation »</strong>.</li>
+    <li>Remplissez : <strong>Titre</strong> (obligatoire), <strong>Catégorie</strong> (Bâtiments, Hydraulique,
+    Forages, Adduction d'eau potable, Aménagements, Énergie solaire, Génie civil, Construction métallique),
+    <strong>Localisation</strong>, <strong>Année</strong> et <strong>Description</strong> (nature des travaux,
+    maître d'ouvrage, résultats…).</li>
+    <li>Cliquez sur <strong>« Choisir les photos »</strong> : sélectionnez une ou plusieurs images depuis
+    la galerie de votre téléphone ou de votre ordinateur.
+    <br><em>Règles : JPG, PNG, WEBP ou AVIF · 10 Mo maximum par image · plusieurs photos possibles.</em>
+    <br>La <strong>première photo sélectionnée devient la couverture</strong> du projet (elle est
+    marquée « Couverture »). Vous pouvez retirer une photo avec le bouton <strong>×</strong> avant l'envoi.</li>
+    <li>Les photos sont <strong>compressées automatiquement</strong> et envoyées en parallèle :
+    une photo de téléphone de 8 Mo devient environ 200 à 400 Ko, sans perte visible.</li>
+    <li>Choisissez le <strong>statut</strong> : <em>Publié (visible)</em> ou <em>Brouillon (masqué)</em>.</li>
+    <li>Cliquez sur <strong>« Enregistrer la réalisation »</strong>. La fiche apparaît dans le
+    catalogue ci-dessous.</li>
+  </ol>
+  <div class="callout"><strong>Champ « lien d'image » (facultatif)</strong>
+  En plus des photos téléversées, vous pouvez coller l'adresse (URL) d'une photo déjà hébergée
+  ailleurs. Ce champ est optionnel.</div>
+
+  <h3>5.2 Gérer le catalogue</h3>
+  <ul>
+    <li><strong>« Photos / fiche »</strong> : modifier le projet et gérer sa galerie de photos.</li>
+    <li><strong>« Publier » / « Dépublier »</strong> : rendre la fiche visible ou la masquer
+    sans la supprimer (voir section 13).</li>
+    <li><strong>« Supprimer »</strong> : effacer définitivement la fiche.</li>
+  </ul>
+  <div class="callout tip"><strong>À savoir</strong>
+  Tant qu'aucune réalisation n'est publiée, le site affiche des photographies de chantier
+  locales fournies avec le site. Dès votre première publication, vos projets prennent leur place.</div>
+</section>
+
+<section class="card" id="s6">
+  <h2 class="sec"><span class="num">6</span>Les actualités</h2>
+  <p>Pour publier vos communiqués, avancées de chantier et annonces (page « Actualités »).</p>
+  <ol class="steps">
+    <li>Rubrique <strong>Actualités</strong> → <strong>« Nouvelle actualité »</strong>.</li>
+    <li>Remplissez le <strong>Titre</strong>, l'<strong>Extrait</strong> (affiché dans la liste) et le
+    <strong>Contenu complet</strong> — séparez les paragraphes par une ligne vide.</li>
+    <li>Indiquez la <strong>date de publication</strong> et le <strong>statut</strong>
+    (Publié ou Brouillon).</li>
+    <li>Facultatif : une <strong>image d'illustration</strong> (adresse URL).</li>
+    <li>Cliquez sur <strong>« Publier »</strong> (le bouton enregistre l'article).</li>
+  </ol>
+  <p>Dans la liste des articles, les boutons <strong>« Publier / Dépublier »</strong> et
+  <strong>« Supprimer »</strong> permettent de gérer chaque article à tout moment.</p>
+  <div class="callout tip"><strong>Astuce rédactionnelle</strong>
+  Un titre court, un extrait accrocheur (2 lignes), puis un contenu en paragraphes aérés :
+  c'est la recette d'un article lisible sur mobile comme sur ordinateur.</div>
+</section>
+
+<section class="card" id="s7">
+  <h2 class="sec"><span class="num">7</span>Les expertises</h2>
+  <p>Les 9 domaines d'intervention affichés sur le site. Chaque fiche contient : titre,
+  description, mots-clés, secteurs, image et ordre d'affichage.</p>
+  <ol class="steps">
+    <li>Rubrique <strong>Expertises</strong> → formulaire <strong>« Ajouter une expertise »</strong>
+    (ou « Modifier » sur une ligne existante).</li>
+    <li>L'<strong>identifiant d'ancre</strong> (slug) s'écrit en <strong>minuscules, sans accents ni
+    espaces</strong> (ex. <code>hydraulique</code>) : il crée le lien direct vers la section
+    (ex. <code>expertises.html#hydraulique</code>).</li>
+    <li>L'image peut être envoyée depuis votre appareil (« choisir un fichier » : envoi automatique,
+    puis enregistrez) ou indiquée par une URL directe.</li>
+    <li>L'<strong>ordre d'affichage</strong> détermine le rang sur la page (1 = premier).</li>
+  </ol>
+  <p>Les boutons <strong>« Masquer / Afficher »</strong> permettent de retirer temporairement une
+  expertise du site sans la supprimer.</p>
+</section>
+
+<section class="card" id="s8">
+  <h2 class="sec"><span class="num">8</span>L'équipe</h2>
+  <p>Gestion des membres affichés sur la page « Notre équipe » : nom complet, fonction,
+  initiales, biographie, photo et ordre d'affichage.</p>
+  <ul>
+    <li>Les <strong>initiales</strong> servent d'avatar tant qu'aucune photo officielle n'est fournie
+    (ex. « MB » pour Mahamadou Bachir).</li>
+    <li>Le champ <strong>Photo officielle (URL)</strong> est facultatif : laissez vide pour conserver
+    l'avatar à initiales.</li>
+    <li>Les boutons <strong>« Masquer / Afficher »</strong> contrôlent la visibilité de chaque membre.</li>
+  </ul>
+</section>
+
+<section class="card" id="s9">
+  <h2 class="sec"><span class="num">9</span>Les textes du site</h2>
+  <p>Cette rubrique permet de modifier <strong>sans aucune technique</strong> les textes éditables
+  du site, page par page : titres de la bannière d'accueil, phrases de présentation, textes du
+  formulaire de contact, etc.</p>
+  <ol class="steps">
+    <li>Rubrique <strong>Textes du site</strong> : les champs sont regroupés par page
+    (<em>accueil</em>, <em>contact</em>…).</li>
+    <li>Modifiez le contenu des champs souhaités. Les champs marqués « HTML » acceptent une mise en
+    forme simple (ex. <code>&lt;em&gt;texte&lt;/em&gt;</code> pour l'italique).</li>
+    <li>Cliquez sur <strong>« Enregistrer les modifications »</strong> en bas de page.</li>
+    <li>Vérifiez le résultat sur le site (bouton « Voir le site ↗ »).</li>
+  </ol>
+  <div class="callout warn"><strong>Attention</strong>
+  Chaque champ modifié remplace immédiatement le texte affiché sur le site public.
+  En cas de doute, notez le texte d'origine avant de le modifier.</div>
+</section>
+
+<section class="card" id="s10">
+  <h2 class="sec"><span class="num">10</span>Les indicateurs d'accueil</h2>
+  <p>Les chiffres affichés sous la bannière de l'accueil (ex. « 2017 — Année de création »).
+  Pour chacun : <strong>valeur</strong>, <strong>libellé</strong> et <strong>ordre</strong>,
+  puis <strong>« Enregistrer »</strong> ligne par ligne.</p>
+  <div class="callout tip"><strong>Conseil</strong>
+  Restez factuel : année de création, nombre de domaines, pays d'implantation.
+  Évitez les chiffres non vérifiables — ils décrédibilisent le discours.</div>
+</section>
+
+<section class="card" id="s11">
+  <h2 class="sec"><span class="num">11</span>Les notifications par e-mail</h2>
+  <p>À chaque demande de contact, le système peut envoyer une alerte e-mail à l'adresse de
+  réception. La rubrique <strong>Notifications</strong> montre l'état de la chaîne et le journal
+  des 50 derniers envois.</p>
+  <h3>États possibles</h3>
+  <table>
+    <tr><th>État</th><th>Signification</th></tr>
+    <tr><td><span class="pill ok">Envoyé</span></td><td>L'alerte e-mail a bien été transmise.</td></tr>
+    <tr><td><span class="pill warn">Non configuré</span></td><td>La clé du fournisseur d'e-mail manque : les demandes sont bien enregistrées, mais aucune alerte n'est envoyée.</td></tr>
+    <tr><td><span class="pill warn">Échec / Erreur trigger</span></td><td>Un problème technique est survenu lors de l'envoi (la demande reste enregistrée).</td></tr>
+  </table>
+  <h3>Activer les e-mails d'alerte (une seule fois)</h3>
+  <ol class="steps">
+    <li>Créez un compte gratuit sur <strong>resend.com</strong> puis une <strong>API Key</strong>
+    (elle commence par <code>re_</code>). <em>Brevo convient également.</em></li>
+    <li>Dans la rubrique Notifications, cliquez sur <strong>« Ouvrir les secrets Supabase ↗ »</strong>.</li>
+    <li>Créez le secret <code>RESEND_API_KEY</code> et collez-y votre clé.</li>
+    <li>Vérifiez ensuite l'<strong>adresse de réception des alertes</strong> dans la même rubrique
+    (modifiable et enregistrée dans les réglages).</li>
+  </ol>
+  <div class="callout"><strong>Garantie</strong>
+  Un incident d'e-mail ne bloque jamais l'enregistrement d'une demande : le message reste
+  toujours consultable dans la rubrique <em>Demandes</em>.</div>
+</section>
+
+<section class="card" id="s12">
+  <h2 class="sec"><span class="num">12</span>Les réglages (coordonnées &amp; sécurité)</h2>
+  <h3>12.1 Coordonnées &amp; réseaux</h3>
+  <p>Ces valeurs alimentent les liens du site (WhatsApp, e-mails, pied de page) :
+  e-mail de contact, téléphone principal, téléphone secondaire, WhatsApp
+  (format international, ex. <code>+22798336191</code>), adresse, page Facebook, page LinkedIn.
+  Cliquez sur <strong>« Enregistrer »</strong> après modification.</p>
+  <h3>12.2 Changer mon mot de passe</h3>
+  <ol class="steps">
+    <li>Rubrique <strong>Réglages</strong> → « Sécurité — changer mon mot de passe ».</li>
+    <li>Saisissez le nouveau mot de passe deux fois (10 caractères ou plus recommandés).</li>
+    <li>Cliquez sur <strong>« Mettre à jour le mot de passe »</strong>.</li>
+  </ol>
+  <h3>12.3 Comptes administrateurs</h3>
+  <p>La liste affiche tous les comptes créés avec le code d'invitation, avec leur date de création.</p>
+</section>
+
+<section class="card" id="s13">
+  <h2 class="sec"><span class="num">13</span>Comprendre les statuts (Publié / Brouillon)</h2>
+  <table>
+    <tr><th>Statut</th><th>Effet sur le site public</th><th>Quand l'utiliser</th></tr>
+    <tr><td><span class="pill ok">Publié</span></td><td>Visible par tous les visiteurs.</td><td>Le contenu est prêt, relu et validé.</td></tr>
+    <tr><td><span class="pill warn">Brouillon</span></td><td>Masqué du site, mais conservé dans l'admin.</td><td>Préparer un contenu à l'avance, ou retirer temporairement un élément.</td></tr>
+    <tr><td><span class="pill ok">Actif</span> / <em>Masqué</em><br><small>(expertises, équipe)</small></td><td>« Masquer » retire l'élément de l'affichage sans le supprimer.</td><td>Gérer la visibilité au jour le jour.</td></tr>
+  </table>
+  <div class="callout warn"><strong>Le réflexe à prendre</strong>
+  Avant de dépublier ou supprimer, vérifiez que le contenu ne sera pas attendu par vos visiteurs
+  (ex. : un projet cité dans une offre en cours).</div>
+</section>
+
+<section class="card" id="s14">
+  <h2 class="sec"><span class="num">14</span>Tâches fréquentes, pas à pas</h2>
+
+  <h4>Ajouter un projet avec ses photos</h4>
+  <ol>
+    <li>Menu <strong>Réalisations</strong> → remplir le formulaire (titre, catégorie…).</li>
+    <li>« Choisir les photos » → sélectionner les images (la 1ʳᵉ = couverture).</li>
+    <li>Statut <em>Publié</em> → « Enregistrer la réalisation ».</li>
+    <li>Vérifier sur « Voir le site ↗ » → page <em>Nos réalisations</em>.</li>
+  </ol>
+
+  <h4>Publier une actualité</h4>
+  <ol>
+    <li>Menu <strong>Actualités</strong> → titre, extrait, contenu (paragraphes séparés par une ligne vide).</li>
+    <li>Date du jour, statut <em>Publié</em> → « Publier ».</li>
+  </ol>
+
+  <h4>Modifier un texte de la page d'accueil</h4>
+  <ol>
+    <li>Menu <strong>Textes du site</strong> → section <em>accueil</em>.</li>
+    <li>Modifier le champ concerné → « Enregistrer les modifications ».</li>
+    <li>Rafraîchir le site pour voir le rendu.</li>
+  </ol>
+
+  <h4>Changer un numéro de téléphone affiché</h4>
+  <ol>
+    <li>Menu <strong>Réglages</strong> → « Coordonnées &amp; réseaux ».</li>
+    <li>Modifier le champ (ex. <em>Téléphone principal</em>) → « Enregistrer ».</li>
+  </ol>
+
+  <h4>Traiter une demande de contact</h4>
+  <ol>
+    <li>Menu <strong>Demandes</strong> → ouvrir le message.</li>
+    <li>« Répondre par e-mail » → après réponse, « Marquer traité ».</li>
+  </ol>
+
+  <h4>Retirer temporairement un projet du site</h4>
+  <ol>
+    <li>Menu <strong>Réalisations</strong> → ligne concernée → « Dépublier ».</li>
+    <li>Le projet reste dans l'admin ; « Publier » le rendra visible à nouveau.</li>
+  </ol>
+</section>
+
+<section class="card" id="s15">
+  <h2 class="sec"><span class="num">15</span>FAQ &amp; dépannage</h2>
+
+  <h4>Je viens de modifier un texte mais le site affiche l'ancien</h4>
+  <p>Le navigateur mémise temporairement les contenus (jusqu'à la fermeture du navigateur).
+  Rafraîchissez la page avec <span class="kbd">Ctrl</span> + <span class="kbd">F5</span>, ou fermez
+  puis rouvrez le navigateur. Vérifiez aussi le statut du contenu (« Publié » et non « Brouillon »).</p>
+
+  <h4>J'ai oublié mon mot de passe</h4>
+  <p>Contactez la direction (ou l'administrateur technique) : le mot de passe peut être réinitialisé
+  depuis la console Supabase. Vous pouvez aussi créer un nouvel accès avec le code d'invitation,
+  depuis l'onglet « Première inscription ».</p>
+
+  <h4>Mes photos ne s'envoient pas</h4>
+  <p>Vérifiez le format (JPG, PNG, WEBP, AVIF) et la taille (10 Mo max par image), ainsi que votre
+  connexion internet. Les envois étant parallèles, réessayez simplement : les photos déjà envoyées
+  ne sont pas renvoyées.</p>
+
+  <h4>La traduction en anglais ne couvre pas mes nouveaux contenus</h4>
+  <p>Le bouton EN traduit l'ensemble des textes du site. Les contenus ajoutés récemment depuis
+  l'admin (nouvelles fiches projets, articles) s'affichent dans la langue de rédaction :
+  rédigez-les en français pour le site français ; l'anglais des sections permanentes est couvert.</p>
+
+  <h4>Où sont les messages du formulaire de contact ?</h4>
+  <p>Menu <strong>Demandes</strong> de l'espace admin. Aucun message n'est perdu : même en cas
+  d'incident e-mail, il reste enregistré ici.</p>
+
+  <h4>Comment masquer temporairement une expertise ou un membre de l'équipe ?</h4>
+  <p>Le bouton « Masquer » de la ligne concernée, sans suppression.</p>
+
+  <h4>Qui peut accéder à l'espace admin ?</h4>
+  <p>Uniquement les comptes créés avec le code d'invitation. La page n'est pas référencée par les
+  moteurs de recherche et n'est pas liée depuis le site public.</p>
+</section>
+
+<section class="card" id="s16">
+  <h2 class="sec"><span class="num">16</span>Bonnes pratiques &amp; sécurité</h2>
+  <ul>
+    <li><strong>Mots de passe</strong> : longs (10 caractères ou plus), uniques, non partagés ;
+    changez-les régulièrement et dès qu'un collaborateur quitte l'équipe.</li>
+    <li><strong>Code d'invitation</strong> : strictement réservé aux administrateurs autorisés.</li>
+    <li><strong>Postes partagés</strong> : déconnectez-vous systématiquement après usage.</li>
+    <li><strong>Photographies</strong> : ne publiez que des images dont l'entreprise détient les droits
+    (photos de chantiers, événements internes) et évitez les visages de tiers sans accord.</li>
+    <li><strong>Relisez-vous</strong> : orthographe, chiffres, coordonnées — le site est votre vitrine.</li>
+    <li><strong>Coordonnées à jour</strong> : vérifiez régulièrement téléphones, e-mail et adresse
+    dans les Réglages.</li>
+    <li><strong>Sauvegardes</strong> : les données sont hébergées et sauvegardées par la plateforme
+    Supabase ; toute opération technique sur la base est réservée au prestataire.</li>
+  </ul>
+</section>
+
+<section class="card" id="s17">
+  <h2 class="sec"><span class="num">17</span>Où sont stockées les données (Supabase)</h2>
+  <p>Tous les contenus gérés depuis l'espace admin sont enregistrés dans la base de données
+  <strong>Supabase</strong> (hébergement sécurisé) :</p>
+  <table>
+    <tr><th>Donnée</th><th>Rubrique admin correspondante</th></tr>
+    <tr><td>Réalisations (projets + galeries)</td><td>Réalisations</td></tr>
+    <tr><td>Articles</td><td>Actualités</td></tr>
+    <tr><td>Expertises</td><td>Expertises</td></tr>
+    <tr><td>Membres de l'équipe</td><td>Équipe</td></tr>
+    <tr><td>Textes éditables des pages</td><td>Textes du site</td></tr>
+    <tr><td>Indicateurs d'accueil</td><td>Indicateurs</td></tr>
+    <tr><td>Messages du formulaire</td><td>Demandes</td></tr>
+    <tr><td>Journal des e-mails</td><td>Notifications</td></tr>
+    <tr><td>Coordonnées &amp; comptes admins</td><td>Réglages</td></tr>
+  </table>
+  <div class="callout"><strong>Règle simple</strong>
+  L'espace admin est la seule interface recommandée pour gérer le site. N'intervenez jamais
+  directement dans la console Supabase sans l'assistance du prestataire technique :
+  une modification maladroite pourrait affecter le site.</div>
+</section>
+
+<section class="card" id="s18">
+  <h2 class="sec"><span class="num">18</span>Contacts &amp; assistance</h2>
+  <ul>
+    <li><strong>Question sur les contenus</strong> (textes, photos, publications) : la direction
+    de GLOBAL SOLUTIONS.</li>
+    <li><strong>Question technique</strong> (accès, mot de passe, e-mails, évolution du site) :
+    votre prestataire de développement.</li>
+    <li><strong>Coordonnées de l'entreprise</strong> : info@globalsolutions.one · +227 98 33 61 91 ·
+    +227 99 54 83 49 — Quartier Koira Kano, BP 12052, Niamey, Niger.</li>
+  </ul>
+  <div class="callout tip"><strong>Bon courage !</strong>
+  Ce guide couvre l'ensemble des fonctionnalités du site et de l'espace admin. Gardez-le à portée
+  de main : il répond à 90 % des questions du quotidien.</div>
+</section>
+
+</div>
+
+<footer class="doc">
+  <div class="inner">
+    <div><strong>GLOBAL SOLUTIONS SARL</strong><br>Guide d'utilisation — Site &amp; espace admin · v1.0</div>
+    <div>Niamey, Niger — Quartier Koira Kano · BP 12052<br>info@globalsolutions.one · +227 98 33 61 91</div>
+  </div>
+</footer>
+
+</body>
+</html>
