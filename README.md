@@ -12,7 +12,7 @@ Site multipage statique (HTML5 / CSS3 / JavaScript ES6+) pour **GLOBAL SOLUTIONS
 ├── realisations.html     Galerie filtrable (Supabase + photographies locales)
 ├── equipe.html           Direction (4 dirigeants, portraits à compléter)
 ├── actualites.html       Actualités (Supabase + emplacements éditoriaux)
-├── contact.html          Formulaire de devis + carte Niamey + appels/WhatsApp
+├── contact.html          Formulaire de contact + carte Niamey + appels/WhatsApp
 ├── 404.html              Page 404 personnalisée
 ├── assets/
 │   ├── logos/logo.jpg    Logo officiel GLOBAL SOLUTIONS
@@ -70,7 +70,7 @@ Tables créées (RLS activé) :
 
 | Table | Usage |
 |---|---|
-| `contact_messages` | Réception des demandes de devis (insert public) |
+| `contact_messages` | Réception des demandes de contact (insert public) |
 | `realisations` | Projets publiés (select `statut='publie'`) |
 | `actualites` | Articles publiés (select `statut='publie'`) |
 | `site_settings` | Paramètres (e-mail, téléphones, WhatsApp, réseaux) |

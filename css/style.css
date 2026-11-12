@@ -76,7 +76,7 @@ h1,h2,h3,h4{font-family:var(--font-title);color:var(--navy);line-height:1.15;let
 .mobile-menu.open{display:block}
 .mobile-menu a{display:block;padding:13px 12px;font-family:var(--font-title);font-weight:700;border-bottom:1px solid var(--grey-light)}
 .mobile-menu a:hover{color:var(--sky-dark)}
-.mobile-menu a.devis{color:var(--sky-dark)}
+.mobile-menu a.mobile-cta{color:var(--sky-dark)}
 /* Hero */
 .hero{position:relative;min-height:88vh;display:flex;align-items:center;color:#fff;overflow:hidden;background:var(--navy)}
 .hero-bg{position:absolute;inset:0}
