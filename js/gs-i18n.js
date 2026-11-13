@@ -108,7 +108,7 @@
   "Ex : Projet de forage à Niamey": "e.g. Borehole project in Niamey",
   "Expertise technique": "Technical expertise",
   "Expertises": "Expertise",
-  "Exploitation de négoce minier": "Mining trade and operations",
+  "Exploitation et négoce minier": "Mining operations and trade",
   "Exploitation et Négoce minier": "Mining Operations and Trade",
   "Exploitation minière": "Mining operations",
   "Exploitation minière et négoce minier, en appui aux activités techniques et logistiques de l'entreprise.": "Mining operations and mining trade, supporting the company's technical and logistics activities.",
